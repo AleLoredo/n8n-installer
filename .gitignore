@@ -1,0 +1,18 @@
+# Environment variables
+.env
+
+# n8n data directory
+n8n_data/
+.n8n/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
