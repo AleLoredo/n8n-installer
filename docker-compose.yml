@@ -16,6 +16,8 @@ services:
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-UTC}
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./workflows:/workflows:ro
+
 
 volumes:
   n8n_data:
