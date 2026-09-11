@@ -1,0 +1,120 @@
+{
+  "name": "03 — Preguntarle a ChatGPT y ver la respuesta",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Ejemplo con ChatGPT\n\nApreta **Execute workflow** y mira el resultado abajo.\n\nPara cambiar la pregunta, abri el nodo **Preguntarle a ChatGPT** y edita el texto.\nEl modelo esta en `gpt-4o-mini`, que es el mas barato; se cambia en el mismo nodo.\n\nLa credencial **OpenAI (ChatGPT)** ya viene elegida: no hay que configurar nada.",
+        "height": 260,
+        "width": 420,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -48
+      ],
+      "id": "s1",
+      "name": "Como usarlo"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        112,
+        64
+      ],
+      "id": "t1",
+      "name": "Execute workflow"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        352,
+        64
+      ],
+      "id": "o1",
+      "name": "Preguntarle a ChatGPT",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Execute workflow**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -208
+      ],
+      "name": "[doc] Execute workflow",
+      "id": "2384222c-58bf-487a-85ac-7b06230b553b"
+    },
+    {
+      "parameters": {
+        "content": "## Preguntarle a ChatGPT\n**Preguntarle a ChatGPT**\n\nManda la pregunta al modelo y espera la respuesta, en un solo nodo.\n\nEl texto que devuelve queda disponible para el paso siguiente.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -208
+      ],
+      "name": "[doc] Preguntarle a ChatGPT",
+      "id": "2e1306e3-da27-4194-9811-d3fa11ddc220"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute workflow": {
+      "main": [
+        [
+          {
+            "node": "Preguntarle a ChatGPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c95fad29-bbb9-4301-928d-c57d036e415e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "81LgscBOTdpCK7O1",
+  "tags": []
+}
