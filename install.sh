@@ -30,21 +30,16 @@ set -a
 source .env
 set +a
 
-# Si la contraseña no está definida en .env, generar una contraseña segura y guardarla en .env
+# Si la contraseña no está definida en .env, generar una contraseña segura
 if [ -z "${N8N_OWNER_PASSWORD:-}" ]; then
   N8N_OWNER_PASSWORD=$(openssl rand -hex 12)
-  if grep -q "^N8N_OWNER_PASSWORD=" .env 2>/dev/null; then
-    if sed --version >/dev/null 2>&1; then
-      sed -i "s/^N8N_OWNER_PASSWORD=.*/N8N_OWNER_PASSWORD=${N8N_OWNER_PASSWORD}/" .env
-    else
-      sed -i '' "s/^N8N_OWNER_PASSWORD=.*/N8N_OWNER_PASSWORD=${N8N_OWNER_PASSWORD}/" .env
-    fi
+  # Actualizar N8N_OWNER_PASSWORD en .env (compatible con GNU sed y BSD sed)
+  if sed --version >/dev/null 2>&1; then
+    sed -i "s/^N8N_OWNER_PASSWORD=.*/N8N_OWNER_PASSWORD=${N8N_OWNER_PASSWORD}/" .env
   else
-    echo "N8N_OWNER_PASSWORD=${N8N_OWNER_PASSWORD}" >> .env
+    sed -i '' "s/^N8N_OWNER_PASSWORD=.*/N8N_OWNER_PASSWORD=${N8N_OWNER_PASSWORD}/" .env
   fi
-  echo "[+] Se generó y guardó la contraseña en .env: ${N8N_OWNER_PASSWORD}"
 fi
-
 
 echo "Levantando contenedor..."
 docker compose up -d
