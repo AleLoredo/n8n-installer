@@ -1,0 +1,164 @@
+{
+  "name": "17 - Un asistente por chat que se acuerda de lo que le dijiste",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ct",
+      "name": "Cuando llega un mensaje de chat",
+      "webhookId": "b1e7a9c4-17f3-4a58-9c21-5f0d3e8a2b64"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Sos el asistente de una distribuidora, atendiendo por chat. Contestas corto, cordial y al grano: dos o tres oraciones como maximo, salvo que te pidan detalle.\nTe acordas de lo que la persona te fue diciendo a lo largo de la conversacion y lo usas: su nombre, su comercio, lo que pidio antes. No se lo vuelvas a preguntar.\nNunca inventes datos de pedidos, precios ni fechas. Si no lo sabes, decilo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        0
+      ],
+      "id": "ag",
+      "name": "El asistente que se acuerda"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        224
+      ],
+      "id": "m1",
+      "name": "ChatGPT (nube)",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        224
+      ],
+      "id": "mem",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "content": "## Aca la memoria se ve\n\nEste flujo no arranca con un boton: arranca con un **Chat Trigger**. Abajo a la izquierda aparece **Chat**, se abre la ventana y escribis.\n\nEl agente tiene enganchada una **Simple Memory**, que guarda lo que se fue hablando y se lo pasa en cada mensaje nuevo.",
+        "height": 280,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -368
+      ],
+      "id": "Nota 1",
+      "name": "Nota 1"
+    },
+    {
+      "parameters": {
+        "content": "## La demostracion, en tres mensajes\n\n1) *Hola, soy Hernan y tengo un almacen en Fisherton.*\n2) *Que dias me conviene pedir?*\n3) *Como me llamo y donde esta mi negocio?*\n\nContesta bien el tercero **porque tiene memoria**.\n\nAhora **desconecta la memoria** —clic en la linea punteada que va al agente, Delete— y repeti los tres. En el tercero no sabe quien sos.\n\nEso es todo lo que hay que entender de memoria.",
+        "height": 280,
+        "width": 580,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -368
+      ],
+      "id": "Nota 2",
+      "name": "Nota 2"
+    },
+    {
+      "parameters": {
+        "content": "## Lo que conviene aclarar en clase\n\nLa **Simple Memory** vive en la memoria del programa: **si el servidor se reinicia, se pierde**. Para que sobreviva hay que usar la memoria de Postgres o Redis, que son otros nodos de la misma lista.\n\nY ojo con el otro lado: la memoria **crece**. Cada mensaje que guarda se le manda de nuevo al modelo, asi que una conversacion larga sale mas cara y mas lenta. Por eso el nodo tiene una ventana: se queda con los ultimos mensajes, no con todos.\n\nPor eso mismo **en los ejemplos 15 y 16 no se le puso memoria**: ahi no hay conversacion, y guardar el historial entre corridas ensuciaria el resultado.",
+        "height": 280,
+        "width": 620,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -368
+      ],
+      "id": "Nota 3",
+      "name": "Nota 3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cuando llega un mensaje de chat": {
+      "main": [
+        [
+          {
+            "node": "El asistente que se acuerda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT (nube)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "El asistente que se acuerda",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "El asistente que se acuerda",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bea3c11f-a490-40ef-b715-3a2723439d45",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "7Z5wmn5sVZXrJS7u",
+  "tags": []
+}

@@ -1,0 +1,398 @@
+{
+  "name": "14 - El mismo pedido, varios cerebros: nube, local chico, local grande y Claude",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "t1",
+      "name": "Al hacer clic en Ejecutar"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "p1",
+              "name": "pregunta",
+              "value": "Un cliente escribe: 'Hace tres dias que espero el pedido 4021 y nadie me contesta.' Redacta la respuesta, maximo 70 palabras, tono cordial, que reconozca la demora, de un plazo concreto y no invente datos que no tenes.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "s1",
+      "name": "La pregunta"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('La pregunta').item.json.pregunta }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        432,
+        0
+      ],
+      "id": "c0",
+      "name": "Responde ChatGPT"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('La pregunta').item.json.pregunta }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        704,
+        0
+      ],
+      "id": "c1",
+      "name": "Responde el modelo local chico"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('La pregunta').item.json.pregunta }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        992,
+        0
+      ],
+      "id": "c2",
+      "name": "Responde el modelo local grande"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('La pregunta').item.json.pregunta }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1280,
+        0
+      ],
+      "id": "c3",
+      "name": "Responde Claude",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        208
+      ],
+      "id": "m0",
+      "name": "ChatGPT en la nube",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.1:8b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        704,
+        208
+      ],
+      "id": "m1",
+      "name": "Llama 3.1 8B en nuestro servidor",
+      "credentials": {
+        "ollamaApi": {
+          "id": "J91bAic0Ejd2JAYu",
+          "name": "Ollama del servidor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        992,
+        208
+      ],
+      "id": "m2",
+      "name": "Qwen 2.5 32B en nuestro servidor",
+      "credentials": {
+        "ollamaApi": {
+          "id": "J91bAic0Ejd2JAYu",
+          "name": "Ollama del servidor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        208
+      ],
+      "id": "m3",
+      "name": "Claude (falta cargar la clave)",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const pregunta = $('La pregunta').first().json.pregunta;\n\nfunction leer(nodo) {\n  try {\n    const v = $(nodo).first().json.text;\n    return (v === undefined || v === null || String(v).trim() === '') ? null : String(v).trim();\n  } catch (e) { return null; }\n}\n\nconst nube   = leer('Responde ChatGPT');\nconst chico  = leer('Responde el modelo local chico');\nconst grande = leer('Responde el modelo local grande');\n\n// Ojo: un nodo DESACTIVADO en n8n no se saltea, deja pasar los datos del anterior.\n// Por eso, si lo que llega de Claude es identico a lo del nodo previo, es que Claude\n// no corrio: lo que estamos viendo es el paso de largo, no una respuesta suya.\nconst crudoClaude = leer('Responde Claude');\nconst claude = (crudoClaude === null || crudoClaude === grande) ? null : crudoClaude;\n\nconst filas = [\n  { modelo: 'ChatGPT gpt-4o-mini', donde: 'Nube - OpenAI',\n    respuesta: nube || 'sin respuesta' },\n  { modelo: 'Llama 3.1 8B', donde: 'Local - nuestro servidor (chico)',\n    respuesta: chico || 'sin respuesta' },\n  { modelo: 'Qwen 2.5 32B', donde: 'Local - nuestro servidor (grande)',\n    respuesta: grande || 'sin respuesta' },\n  { modelo: 'Claude', donde: 'Nube - Anthropic',\n    respuesta: claude || 'PENDIENTE: falta cargar la clave de API de Anthropic y activar los dos nodos de Claude' },\n];\n\nreturn filas.map(f => ({ json: { pregunta, modelo: f.modelo, donde: f.donde,\n                                 palabras: f.respuesta.split(/\\s+/).length, respuesta: f.respuesta } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        0
+      ],
+      "id": "cmp",
+      "name": "Comparar las respuestas"
+    },
+    {
+      "parameters": {
+        "content": "## El mismo pedido, varios cerebros\n\nLa pregunta se escribe **una sola vez**, en el nodo de la izquierda.\nDespues pasa por todos los modelos **sin cambiar nada del flujo**.\n\nEso es lo unico que hay que llevarse de este ejemplo: el flujo es el trabajo, el modelo es intercambiable.",
+        "height": 280,
+        "width": 660,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -336
+      ],
+      "id": "Nota 1",
+      "name": "Nota 1"
+    },
+    {
+      "parameters": {
+        "content": "## Uno esta afuera, dos estan adentro\n\n**ChatGPT** corre en los servidores de OpenAI: la consulta **sale de la empresa**.\n\n**Llama 3.1** y **Qwen 2.5** corren en nuestro propio servidor: la consulta **no sale a internet**.\n\nEsa es la conversacion que hay que tener: cuando conviene cada uno.",
+        "height": 280,
+        "width": 600,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -336
+      ],
+      "id": "Nota 2",
+      "name": "Nota 2"
+    },
+    {
+      "parameters": {
+        "content": "## Chico y grande, el mismo hardware\n\n**Llama 3.1 8B** contesta en **menos de un segundo**.\n\n**Qwen 2.5 32B** tarda **2 o 3 segundos**, y **la primera vez del dia unos 25**, porque tiene que cargar 20 GB en la placa de video.\n\nEl grande contesta mejor. Ahi se ve el costo real de la calidad cuando el modelo es propio.",
+        "height": 280,
+        "width": 560,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        -336
+      ],
+      "id": "Nota 3",
+      "name": "Nota 3"
+    },
+    {
+      "parameters": {
+        "content": "## Claude todavia no\n\nEste tramo esta **desactivado a proposito**: falta cargar una clave de API de Anthropic.\n\nPara activarlo: cargar la credencial en el nodo de abajo, elegir el modelo de la lista, y activar los dos nodos con el boton derecho, *Activar*. El resto del flujo no se toca.",
+        "height": 280,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        -336
+      ],
+      "id": "Nota 4",
+      "name": "Nota 4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1616,
+        224
+      ],
+      "id": "619d1eeb-22b8-467e-ab49-cbeabae2c265",
+      "name": "AI Agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "La pregunta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "La pregunta": {
+      "main": [
+        [
+          {
+            "node": "Responde ChatGPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responde ChatGPT": {
+      "main": [
+        [
+          {
+            "node": "Responde el modelo local chico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responde el modelo local chico": {
+      "main": [
+        [
+          {
+            "node": "Responde el modelo local grande",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responde el modelo local grande": {
+      "main": [
+        [
+          {
+            "node": "Responde Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responde Claude": {
+      "main": [
+        [
+          {
+            "node": "Comparar las respuestas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT en la nube": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Responde ChatGPT",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llama 3.1 8B en nuestro servidor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Responde el modelo local chico",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qwen 2.5 32B en nuestro servidor": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Responde el modelo local grande",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude (falta cargar la clave)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Responde Claude",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c286a3eb-6c00-4a1e-8762-9ecc53c9d785",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "AE4ifuX1OBQTEVcI",
+  "tags": []
+}

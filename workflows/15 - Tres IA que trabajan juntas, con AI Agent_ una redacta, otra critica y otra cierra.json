@@ -1,0 +1,333 @@
+{
+  "name": "15 - Tres IA que trabajan juntas, con AI Agent: una redacta, otra critica y otra cierra",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "t1",
+      "name": "Al hacer clic en Ejecutar"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "caso",
+              "value": "Un cliente escribe: 'Hace tres dias que espero el pedido 4021 y nadie me contesta. Necesito saber cuando llega porque tengo el local sin mercaderia.' Lo que sabemos de verdad: el pedido salio del deposito ayer, lo lleva la ruta 8, y la ruta 8 entrega en esa zona los martes y los viernes. No sabemos la hora.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "s1",
+      "name": "El caso"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Escribi la respuesta para este caso.\n\nDATOS CONOCIDOS:\n{{ $('El caso').item.json.caso }}",
+        "options": {
+          "systemMessage": "Sos quien atiende al cliente en una distribuidora. Escribis como una persona, no como un formulario: cordial, directo y sin formulas vacias.\nRegla que no se negocia: NUNCA afirmes algo que no este en los datos que te dan. Si no sabes una fecha o una hora, no la inventes ni la insinues.\nDevolves unicamente el texto del mensaje, sin titulos ni explicaciones."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        464,
+        0
+      ],
+      "id": "p0",
+      "name": "Paso 1 - ChatGPT redacta el borrador"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Revisa el borrador contra los datos conocidos.\n\nDATOS CONOCIDOS:\n{{ $('El caso').item.json.caso }}\n\nBORRADOR:\n{{ $('Paso 1 - ChatGPT redacta el borrador').item.json.output }}",
+        "options": {
+          "systemMessage": "Sos el supervisor de atencion al cliente. Tu unico trabajo es revisar lo que esta por salir y encontrarle los problemas. NO reescribis nada.\nBuscas tres cosas, en este orden: si afirma algo que no esta en los datos conocidos; si esquiva dar un plazo o lo deja vago; y si suena a excusa.\nDevolves una lista numerada, maximo cuatro puntos, cada uno concreto y citando la parte del borrador que falla. Si algo esta bien, no lo menciones."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        784,
+        0
+      ],
+      "id": "p1",
+      "name": "Paso 2 - Llama revisa y critica"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Escribi la version final.\n\nDATOS CONOCIDOS:\n{{ $('El caso').item.json.caso }}\n\nBORRADOR:\n{{ $('Paso 1 - ChatGPT redacta el borrador').item.json.output }}\n\nOBSERVACIONES DEL SUPERVISOR:\n{{ $('Paso 2 - Llama revisa y critica').item.json.output }}",
+        "options": {
+          "systemMessage": "Sos quien firma la version final que se le manda al cliente. Recibis un borrador y las observaciones de un supervisor, y tu trabajo es entregar el texto corregido.\nAplicas todas las observaciones. No agregas informacion nueva. No inventas fechas ni horas.\nMaximo 70 palabras. Devolves UNICAMENTE el texto final del mensaje, sin titulos, sin comentarios y sin explicar que cambiaste."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        0
+      ],
+      "id": "p2",
+      "name": "Paso 3 - Qwen escribe la version final"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        224
+      ],
+      "id": "m0",
+      "name": "ChatGPT (nube)",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.1:8b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        784,
+        224
+      ],
+      "id": "m1",
+      "name": "Llama 3.1 8B (nuestro servidor)",
+      "credentials": {
+        "ollamaApi": {
+          "id": "J91bAic0Ejd2JAYu",
+          "name": "Ollama del servidor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        224
+      ],
+      "id": "m2",
+      "name": "Qwen 2.5 32B (nuestro servidor)",
+      "credentials": {
+        "ollamaApi": {
+          "id": "J91bAic0Ejd2JAYu",
+          "name": "Ollama del servidor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// El nodo AI Agent devuelve 'output'; la cadena simple devolvia 'text'.\n// Se leen los dos para que el ejemplo no dependa de cual se use.\nfunction leer(nodo) {\n  try {\n    const j = $(nodo).first().json;\n    const v = (j.output !== undefined && j.output !== null) ? j.output : j.text;\n    return (v === undefined || v === null) ? '' : String(v).trim();\n  } catch (e) { return ''; }\n}\n\nconst caso     = $('El caso').first().json.caso;\nconst borrador = leer('Paso 1 - ChatGPT redacta el borrador');\nconst criticas = leer('Paso 2 - Llama revisa y critica');\nconst final    = leer('Paso 3 - Qwen escribe la version final');\n\nconst etapas = [\n  { paso: '1. Redacta',   quien: 'ChatGPT gpt-4o-mini', donde: 'Nube - OpenAI',                    texto: borrador },\n  { paso: '2. Critica',   quien: 'Llama 3.1 8B',        donde: 'Local - nuestro servidor (chico)', texto: criticas },\n  { paso: '3. Reescribe', quien: 'Qwen 2.5 32B',        donde: 'Local - nuestro servidor (grande)', texto: final },\n];\n\nconst salida = etapas.map(e => ({\n  json: { paso: e.paso, quien: e.quien, donde: e.donde,\n          palabras: e.texto ? e.texto.split(/\\s+/).length : 0,\n          texto: e.texto || 'sin respuesta' }\n}));\n\nsalida.push({ json: { paso: 'RESULTADO', quien: 'Las tres juntas', donde: '-',\n                      palabras: final ? final.split(/\\s+/).length : 0,\n                      texto: final || 'sin resultado', caso } });\n\nreturn salida;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        0
+      ],
+      "id": "cmp",
+      "name": "Las tres etapas y el resultado"
+    },
+    {
+      "parameters": {
+        "content": "## Tres IA trabajando sobre lo mismo\n\nNo es la misma pregunta repetida: **cada una hace un papel distinto y recibe lo que hizo la anterior**.\n\n**ChatGPT** redacta el borrador.\n**Llama 3.1**, en nuestro servidor, lo revisa y marca los problemas.\n**Qwen 2.5**, tambien nuestro, reescribe aplicando esas observaciones.\n\nEl resultado final es de las tres, no de una.",
+        "height": 300,
+        "width": 620,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -384
+      ],
+      "id": "Nota 1",
+      "name": "Nota 1"
+    },
+    {
+      "parameters": {
+        "content": "## Cada paso es un AI Agent\n\nAdentro de cada nodo hay **dos campos separados**: el **System Message**, que dice **quien es** —el que atiende, el supervisor, el que firma—, y el pedido concreto.\n\nEscribir el rol aparte cambia el resultado, no es decoracion: el supervisor cita la frase que falla porque su rol se lo exige.\n\nAbri cualquier paso y mira los dos campos.",
+        "height": 300,
+        "width": 580,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -384
+      ],
+      "id": "Nota 2",
+      "name": "Nota 2"
+    },
+    {
+      "parameters": {
+        "content": "## Lo que hay que mirar cuando corre\n\nAbri el nodo **Paso 2** y leelo: ahi se ve una IA senalandole errores a otra.\n\nCasi siempre el borrador promete algo que **no esta en los datos** —una fecha, un 'pronto'—. El supervisor lo marca, y la version final ya no lo dice.\n\nEso es lo que hace util encadenarlas: **una sola pasada no se corrige a si misma**.",
+        "height": 300,
+        "width": 580,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        -384
+      ],
+      "id": "Nota 3",
+      "name": "Nota 3"
+    },
+    {
+      "parameters": {
+        "content": "## Dos de tres corren adentro\n\n**ChatGPT** corre en los servidores de OpenAI: esa consulta **sale de la empresa**.\n\n**Llama 3.1** y **Qwen 2.5** corren en nuestro propio servidor: esas **no salen**.\n\nEl paso mas delicado —el que revisa y el que escribe lo que se manda— queda adentro.",
+        "height": 300,
+        "width": 520,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        -384
+      ],
+      "id": "Nota 4",
+      "name": "Nota 4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "El caso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "El caso": {
+      "main": [
+        [
+          {
+            "node": "Paso 1 - ChatGPT redacta el borrador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 1 - ChatGPT redacta el borrador": {
+      "main": [
+        [
+          {
+            "node": "Paso 2 - Llama revisa y critica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 2 - Llama revisa y critica": {
+      "main": [
+        [
+          {
+            "node": "Paso 3 - Qwen escribe la version final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 3 - Qwen escribe la version final": {
+      "main": [
+        [
+          {
+            "node": "Las tres etapas y el resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT (nube)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 1 - ChatGPT redacta el borrador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llama 3.1 8B (nuestro servidor)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 2 - Llama revisa y critica",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qwen 2.5 32B (nuestro servidor)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 3 - Qwen escribe la version final",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "13dd07b3-e0f6-4c4f-af18-d50f9a149e9c",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "fTdwE5hfKagrwVzc",
+  "tags": []
+}

@@ -1,0 +1,206 @@
+{
+  "name": "10 — Traer datos y que la IA los describa",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Ejemplo con la API de Roperito\n\nEl caso tipico de \"IA aplicada al trabajo\": **datos propios + un modelo**.\n\n**1.** `GET /productos` trae las prendas cargadas.\n**2.** Se queda con una.\n**3.** ChatGPT le escribe la descripcion de venta, usando el nombre, el talle y el color\nque vinieron de la API.\n\nNinguno de los pasos escribe nada: solo lee. Para cambiar la prenda, sacale el nodo\n**Quedarse con una** o cambia el numero.\n\nOtras rutas para probar: `/usuarios` · `/organizaciones` · `/reservas`",
+        "height": 340,
+        "width": 470,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -80
+      ],
+      "id": "s1",
+      "name": "Como usarlo"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        112,
+        80
+      ],
+      "id": "t1",
+      "name": "Execute workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://ort.nilosolutions.com/api/roperito/productos",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        80
+      ],
+      "id": "h1",
+      "name": "1. Traer las prendas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "iZ61aq7vurNt3ftz",
+          "name": "APIs de ORT (X-API-Key)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        544,
+        80
+      ],
+      "id": "l1",
+      "name": "Quedarse con una"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responses": {
+          "values": [
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        784,
+        80
+      ],
+      "id": "o1",
+      "name": "2. Que ChatGPT la describa",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Execute workflow**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -176
+      ],
+      "name": "[doc] Execute workflow",
+      "id": "aa9c35c3-05e0-4048-b2c3-e7fb2f0243c5"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar un dato afuera\n**1. Traer las prendas**\n\nSale a internet a pedirle información a otro sistema: `https://ort.nilosolutions.com/api/roperito/productos`\n\nEs la forma de traer datos de otro sistema **sin que nadie los copie y pegue a mano**.\n\nLo que vuelve queda disponible para los nodos siguientes.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -176
+      ],
+      "name": "[doc] 1. Traer las prendas",
+      "id": "d4f725ee-2d5f-46b2-88ee-15de3f13d826"
+    },
+    {
+      "parameters": {
+        "content": "## Quedarse con uno\n**Quedarse con una**\n\nRecorta la lista y deja un solo registro, para que el ejemplo sea corto y barato.\n\nSin este nodo, el paso siguiente se ejecutaría una vez por cada registro.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        528,
+        -176
+      ],
+      "name": "[doc] Quedarse con una",
+      "id": "51d36401-c69d-402e-acf4-a3273c479ce7"
+    },
+    {
+      "parameters": {
+        "content": "## Preguntarle a ChatGPT\n**2. Que ChatGPT la describa**\n\nManda la pregunta al modelo y espera la respuesta, en un solo nodo.\n\nEl texto que devuelve queda disponible para el paso siguiente.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        768,
+        -176
+      ],
+      "name": "[doc] 2. Que ChatGPT la describa",
+      "id": "a86c0625-1d9a-4369-a765-b866246e4d6d"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute workflow": {
+      "main": [
+        [
+          {
+            "node": "1. Traer las prendas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Traer las prendas": {
+      "main": [
+        [
+          {
+            "node": "Quedarse con una",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quedarse con una": {
+      "main": [
+        [
+          {
+            "node": "2. Que ChatGPT la describa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c31685cd-95d3-4a16-805e-143f588c8e60",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "dfAahYyqyvGgm0uS",
+  "tags": []
+}

@@ -1,0 +1,375 @@
+{
+  "name": "13 — Radiografía de un proceso: el informe que se arma solo",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "radiografia",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Abrir el formulario",
+      "webhookId": "radiografia-form",
+      "id": "870052cd-204e-44ac-aebf-298f39c014ff"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst host = $json.headers['x-forwarded-host'] || $json.headers.host;\nconst destino = 'https://' + host + '/webhook/radiografia-informe';\nconst html = `<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>Radiografia de un proceso</title><style>\n*{box-sizing:border-box} body{margin:0;background:#f4f6f7;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#16191c}\n.w{max-width:640px;margin:0 auto;padding:32px 20px 60px}\n.k{font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#0B4F6C;font-weight:700}\nh1{font-size:30px;line-height:1.15;margin:10px 0 6px;letter-spacing:-.5px}\n.sub{color:#5a656b;font-size:15px;line-height:1.5;margin:0 0 24px}\nform{background:#fff;border-top:5px solid #0B4F6C;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,.08)}\nlabel{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#0B4F6C;margin:16px 0 6px}\ninput,textarea,select{width:100%;padding:11px 12px;border:1px solid #cfd8dc;font-size:15px;font-family:inherit;background:#fff}\ntextarea{min-height:110px;resize:vertical}\nbutton{margin-top:22px;width:100%;padding:15px;background:#0B4F6C;color:#fff;border:0;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.3px}\nbutton:disabled{opacity:.6}\n.n{font-size:12px;color:#8b949a;margin-top:14px;line-height:1.5}\n</style></head><body><div class=\"w\">\n<span class=\"k\">Gerencia de Sistemas 2026</span>\n<h1>Radiografia de un proceso</h1>\n<p class=\"sub\">Describa una tarea repetitiva de su organizacion. En unos segundos va a recibir un\ninforme con el veredicto, la arquitectura sugerida, los riesgos y el primer paso concreto.</p>\n<form id=\"f\">\n<label>Que proceso es</label>\n<textarea name=\"proceso\" required placeholder=\"Ej.: cada vez que llega una factura por correo, una persona la abre, copia los datos a una planilla y avisa al area de pagos.\"></textarea>\n<label>Quien lo hace hoy</label>\n<input name=\"quien\" required placeholder=\"Ej.: una administrativa del area de compras\">\n<label>Cuantas veces por semana ocurre</label>\n<input name=\"veces\" type=\"number\" min=\"1\" value=\"20\" required>\n<label>Cuantos minutos lleva cada vez</label>\n<input name=\"minutos\" type=\"number\" min=\"1\" value=\"8\" required>\n<label>Que pasa si sale mal</label>\n<select name=\"criticidad\">\n<option>Se corrige sin consecuencias</option>\n<option>Genera retrabajo y demoras</option>\n<option>Impacta a un cliente o a un pago</option>\n<option>Tiene consecuencia legal o economica seria</option>\n</select>\n<button id=\"b\" type=\"submit\">Analizar el proceso</button>\n<p class=\"n\">El analisis lo hace un modelo de IA con los criterios del curso. No se guarda ningun dato.</p>\n</form></div>\n<script>\ndocument.getElementById('f').addEventListener('submit', async (e) => {\n  e.preventDefault();\n  const b = document.getElementById('b');\n  b.disabled = true; b.textContent = 'Analizando…';\n  const d = Object.fromEntries(new FormData(e.target).entries());\n  const r = await fetch('DESTINO', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(d)});\n  document.open(); document.write(await r.text()); document.close();\n});\n</script></body></html>`;\nreturn [{ json: { html: html.replace('DESTINO', destino) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "name": "Armar el formulario",
+      "id": "3b74dc0a-567b-4144-a2a7-89a1a6b27d92"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "content-type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        480,
+        0
+      ],
+      "name": "Mostrar el formulario",
+      "id": "d8f2294c-c5a5-4fe7-9f98-101f5605e7ba"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "radiografia-informe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        464
+      ],
+      "name": "Recibir el proceso",
+      "webhookId": "radiografia-informe",
+      "id": "a9bac216-0993-41b6-a8ce-43b94f4f649a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Usted asesora a gerentes de sistemas sobre automatizacion de procesos. Analice el\nproceso descripto y responda UNICAMENTE con un JSON valido, sin texto alrededor y sin bloques de codigo.\n\nProceso: {{ $json.body.proceso }}\nLo ejecuta hoy: {{ $json.body.quien }}\nFrecuencia: {{ $json.body.veces }} veces por semana, {{ $json.body.minutos }} minutos cada vez\nConsecuencia de un error: {{ $json.body.criticidad }}\n\nDevuelva este JSON:\n{\n \"veredicto\": \"una de estas tres palabras exactas: ALTO, MEDIO o BAJO (aptitud del proceso como candidato a automatizacion)\",\n \"razon\": \"dos frases explicando el veredicto en lenguaje de gestion, sin terminos tecnicos\",\n \"recibir\": \"que dispara el proceso y que dato entra, en una linea\",\n \"procesar\": \"que transformacion o criterio se aplica, en una linea\",\n \"responder\": \"que sale del proceso y a quien, en una linea\",\n \"arquitectura\": [\"4 a 6 pasos concretos del flujo, cada uno de cinco palabras o menos\"],\n \"ia\": \"en que paso exacto interviene la IA y por que ahi, en una linea\",\n \"riesgos\": [\"2 o 3 riesgos concretos de automatizar ESTE proceso, con su control\"],\n \"primer_paso\": \"la primera accion concreta que deberia hacer manana a la manana\"\n}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        272,
+        464
+      ],
+      "name": "Analizarlo con los criterios del curso",
+      "id": "2e93848a-80b4-443f-a507-1ff95e0fdea6"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        704
+      ],
+      "name": "El cerebro (ChatGPT)",
+      "id": "1f5b65b5-8a79-44c1-b666-763f706b8ce1",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst b = $('Recibir el proceso').first().json.body;\nlet ia = {};\ntry {\n  const bruto = ($json.text || $json.response || JSON.stringify($json)).trim();\n  ia = JSON.parse(bruto.replace(/^```(json)?/i,'').replace(/```$/,'').trim());\n} catch (e) { ia = { veredicto:'MEDIO', razon:'No se pudo interpretar la respuesta del modelo.',\n  arquitectura:[], riesgos:[], primer_paso:'Reintentar el analisis.' }; }\n\n// Las horas salen de lo que declaro el gerente, no de una cifra inventada.\nconst hs_sem = (Number(b.veces) * Number(b.minutos)) / 60;\nconst hs_ano = Math.round(hs_sem * 48);\nconst col = { ALTO:'#1b7a4b', MEDIO:'#b06a1a', BAJO:'#8b949a' }[String(ia.veredicto).toUpperCase()] || '#0B4F6C';\nconst li = (a) => (a||[]).map(x => `<li>${x}</li>`).join('');\nconst pasos = (ia.arquitectura||[]).map((x,i) => `<div class=\"p\"><span>${i+1}</span>${x}</div>`).join('<div class=\"fl\">&rarr;</div>');\n\nconst html = `<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Radiografia del proceso</title><style>\n*{box-sizing:border-box} body{margin:0;background:#f4f6f7;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#16191c}\n.w{max-width:720px;margin:0 auto;padding:30px 20px 60px}\n.c{background:#fff;border-top:5px solid #0B4F6C;padding:26px;box-shadow:0 1px 3px rgba(0,0,0,.08)}\n.k{font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#0B4F6C;font-weight:700}\nh1{font-size:26px;margin:8px 0 18px;letter-spacing:-.4px}\n.vd{display:inline-block;background:${col};color:#fff;padding:7px 16px;font-weight:700;letter-spacing:1.5px;font-size:13px}\n.rz{font-size:16px;line-height:1.55;margin:14px 0 22px}\nh2{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:#0B4F6C;border-bottom:1px solid #dde4e7;padding-bottom:6px;margin:26px 0 12px}\n.rpr div{padding:9px 0;border-bottom:1px solid #eef2f4;font-size:15px;line-height:1.5}\n.rpr b{display:inline-block;width:92px;color:#0B4F6C;font-size:12px;text-transform:uppercase;letter-spacing:.8px;vertical-align:top}\n.rpr span{display:inline-block;width:calc(100% - 100px)}\n.arq{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0}\n.p{background:#EAF1F5;border-left:3px solid #0B4F6C;padding:9px 12px;font-size:13.5px;font-weight:600;flex:1 1 150px}\n.p span{display:inline-block;background:#0B4F6C;color:#fff;width:18px;height:18px;line-height:18px;text-align:center;font-size:11px;margin-right:7px}\n.fl{color:#8b949a}\nul{margin:0;padding-left:20px} li{font-size:14.5px;line-height:1.55;margin-bottom:7px}\n.num{display:flex;gap:14px;margin:8px 0 4px}\n.num div{flex:1;border:1px solid #dde4e7;border-top:3px solid #0B4F6C;padding:14px}\n.num b{display:block;font-size:30px;letter-spacing:-1px;color:#0B4F6C}\n.num small{color:#5a656b;font-size:12.5px;line-height:1.4;display:block;margin-top:3px}\n.ps{background:#16191c;color:#fff;padding:18px 20px;margin-top:24px;font-size:15.5px;line-height:1.5}\n.ps b{display:block;font-size:11px;letter-spacing:1.6px;color:#8fb6c8;text-transform:uppercase;margin-bottom:6px}\n.pie{font-size:11.5px;color:#8b949a;margin-top:18px;line-height:1.5}\n</style></head><body><div class=\"w\"><div class=\"c\">\n<span class=\"k\">Gerencia de Sistemas 2026 &middot; analisis automatico</span>\n<h1>Radiografia del proceso</h1>\n<span class=\"vd\">APTITUD ${String(ia.veredicto).toUpperCase()}</span>\n<p class=\"rz\">${ia.razon||''}</p>\n<h2>El patron: recibir, procesar, responder</h2>\n<div class=\"rpr\">\n <div><b>Recibir</b><span>${ia.recibir||''}</span></div>\n <div><b>Procesar</b><span>${ia.procesar||''}</span></div>\n <div><b>Responder</b><span>${ia.responder||''}</span></div>\n</div>\n<h2>Lo que hoy cuesta, con sus propios numeros</h2>\n<div class=\"num\">\n <div><b>${hs_sem.toFixed(1)} h</b><small>por semana, dedicadas a esta tarea<br>(${b.veces} veces x ${b.minutos} min)</small></div>\n <div><b>${hs_ano} h</b><small>por ano, sobre 48 semanas habiles</small></div>\n</div>\n<h2>Arquitectura sugerida</h2>\n<div class=\"arq\">${pasos}</div>\n<p style=\"font-size:14px;line-height:1.55;margin-top:10px\"><b>Donde entra la IA:</b> ${ia.ia||''}</p>\n<h2>Riesgos y controles</h2><ul>${li(ia.riesgos)}</ul>\n<div class=\"ps\"><b>Primer paso</b>${ia.primer_paso||''}</div>\n<p class=\"pie\">Analisis generado por un flujo de automatizacion con IA, a partir de la descripcion\ningresada. Las horas se calculan con los valores declarados por usted; no son una estimacion del sistema.\nDocumento de trabajo para uso didactico.</p>\n</div></div></body></html>`;\nreturn [{ json: { html } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        464
+      ],
+      "name": "Armar el informe",
+      "id": "5eb30eee-20d8-48dc-bcf6-a98174e34f6c"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "content-type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        464
+      ],
+      "name": "Devolver el informe",
+      "id": "a8362d99-b4da-4f3a-b957-ab154e46544c"
+    },
+    {
+      "parameters": {
+        "content": "## Dirección web propia\n**Abrir el formulario**\n\nCrea una URL propia del flujo. Cuando alguien entra (GET), el flujo arranca solo.\n\nEs la puerta de entrada universal: la usa un formulario, otro sistema o una página web.\n\nEn el panel hay dos direcciones: la de prueba y la de producción.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -256
+      ],
+      "name": "[doc] Abrir el formulario",
+      "id": "50e9aed0-ba90-4ad3-ac80-5a02863f1ebd"
+    },
+    {
+      "parameters": {
+        "content": "## Datos de ejemplo\n**Armar el formulario**\n\nUn pedazo de código que arma los datos de prueba, escritos a mano.\n\nPermite ensayar el flujo sin conectar todavía el correo ni el sistema real.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -256
+      ],
+      "name": "[doc] Armar el formulario",
+      "id": "40990b00-d4da-492a-ad4a-0d739adc996a"
+    },
+    {
+      "parameters": {
+        "content": "## Devolver la respuesta\n**Mostrar el formulario**\n\nLe contesta a quien entró a la dirección: acá se define qué ve del otro lado.\n\nSin este nodo, el visitante recibiría un mensaje vacío.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -256
+      ],
+      "name": "[doc] Mostrar el formulario",
+      "id": "0c825c82-75a4-4f44-b2d4-c19caeb03937"
+    },
+    {
+      "parameters": {
+        "content": "## Dirección web propia\n**Recibir el proceso**\n\nCrea una URL propia del flujo. Cuando alguien entra (POST), el flujo arranca solo.\n\nEs la puerta de entrada universal: la usa un formulario, otro sistema o una página web.\n\nEn el panel hay dos direcciones: la de prueba y la de producción.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        624
+      ],
+      "name": "[doc] Recibir el proceso",
+      "id": "46afb98f-9e08-4a19-b3e6-f0f03c152073"
+    },
+    {
+      "parameters": {
+        "content": "## El pedido a la IA\n**Analizarlo con los criterios del curso**\n\nAcá adentro está la instrucción que recibe la IA. Es el nodo que hay que abrir para entender el flujo.\n\nPedido: “Usted asesora a gerentes de sistemas sobre automatizacion de procesos. Analice el proceso descripto y responda…”\n\nEl **cerebro** que responde no está acá: cuelga por debajo, y se puede cambiar.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        256,
+        624
+      ],
+      "name": "[doc] Analizarlo con los criterios del curso",
+      "id": "946f67ec-8c07-4f9a-969c-616d771b3f3d"
+    },
+    {
+      "parameters": {
+        "content": "## El cerebro\n**El cerebro (ChatGPT)**\n\nEl modelo que piensa: **ChatGPT (OpenAI)**, modelo `gpt-4o-mini`.\n\nNo cuelga hacia adelante sino hacia abajo: es un accesorio del nodo de arriba.\n\nEs **intercambiable**: se enchufa otro cerebro y el resto del flujo no cambia.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        864
+      ],
+      "name": "[doc] El cerebro (ChatGPT)",
+      "id": "94b5d308-3781-4727-b7c1-9cb3095855cc"
+    },
+    {
+      "parameters": {
+        "content": "## Datos de ejemplo\n**Armar el informe**\n\nUn pedazo de código que arma los datos de prueba, escritos a mano.\n\nPermite ensayar el flujo sin conectar todavía el correo ni el sistema real.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        624
+      ],
+      "name": "[doc] Armar el informe",
+      "id": "d1a49857-135b-4107-9292-b25f715fe190"
+    },
+    {
+      "parameters": {
+        "content": "## Devolver la respuesta\n**Devolver el informe**\n\nLe contesta a quien entró a la dirección: acá se define qué ve del otro lado.\n\nSin este nodo, el visitante recibiría un mensaje vacío.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        800,
+        624
+      ],
+      "name": "[doc] Devolver el informe",
+      "id": "85aa60fc-fcda-4b3f-a59a-544f91752444"
+    },
+    {
+      "parameters": {
+        "content": "# 13 — Radiografía de un proceso\n\n**Qué hace:** publica una dirección web propia. El gerente entra desde el teléfono, describe una tarea repetitiva de su organización y recibe **en segundos** un informe a medida: aptitud para automatizarse, el patrón recibir–procesar–responder, la arquitectura sugerida, los riesgos y el primer paso.\n\n**Por qué es distinto a los anteriores:** los otros flujos se ejecutan a mano. Este **queda publicado y funcionando**: cualquiera con el enlace lo usa, sin instalar nada.\n\n**Cómo se prueba:** activar el flujo (interruptor Active, arriba a la derecha) y abrir\n`https://<esta-instancia>/webhook/radiografia`\n\n**Las horas del informe no las inventa la IA:** las calcula el nodo *Armar el informe* con los números que cargó el propio gerente.\n\n_[doc]_",
+        "height": 420,
+        "width": 420,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -64
+      ],
+      "name": "[doc] Presentación del flujo",
+      "id": "3f12e1ee-dbb8-4eb0-a286-ed917db93e65"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Abrir el formulario": {
+      "main": [
+        [
+          {
+            "node": "Armar el formulario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar el formulario": {
+      "main": [
+        [
+          {
+            "node": "Mostrar el formulario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recibir el proceso": {
+      "main": [
+        [
+          {
+            "node": "Analizarlo con los criterios del curso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizarlo con los criterios del curso": {
+      "main": [
+        [
+          {
+            "node": "Armar el informe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar el informe": {
+      "main": [
+        [
+          {
+            "node": "Devolver el informe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "El cerebro (ChatGPT)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analizarlo con los criterios del curso",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "46efc313-6265-49ac-8256-622ab88f7659",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "deG7d1oz7TA4dERD",
+  "tags": []
+}

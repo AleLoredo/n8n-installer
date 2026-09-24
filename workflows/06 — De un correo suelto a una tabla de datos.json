@@ -1,0 +1,228 @@
+{
+  "name": "06 — De un correo suelto a una tabla de datos",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Ejemplo 4 — De texto suelto a columnas\n\nEntra un mail escrito por una persona. Sale una **fila con columnas**: empresa, contacto, articulos, fecha.\n\nEsto es lo que despues se pega en una planilla. Aca tampoco se escribe prompt: se declaran los **atributos**.",
+        "height": 300,
+        "width": 440,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -144
+      ],
+      "name": "Nota -460_-140",
+      "id": "61b3be60-57d8-4281-a1bb-ed0efa23eba7"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        112
+      ],
+      "name": "Al hacer clic en Ejecutar",
+      "id": "fa684b88-0f27-4a50-bea5-042cb7c564db"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "mail",
+              "value": "Buenas tardes. Les escribo de Metalurgica San Jorge. Necesitamos cotizar 250 unidades del perfil PU-40 y 80 del PU-60. Lo necesitamos puesto en planta antes del 30 de septiembre. Cualquier cosa me escriben a compras@sanjorge.com.ar o al 341 555-2211. Saludos, Marcela Ruiz.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        112
+      ],
+      "name": "El mail que llego",
+      "id": "eae1f079-06dd-41ed-8f9d-f209596f8bd0"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.mail }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "empresa",
+              "description": "Nombre de la empresa que escribe"
+            },
+            {
+              "name": "contacto",
+              "description": "Nombre de la persona que firma"
+            },
+            {
+              "name": "email",
+              "description": "Correo de contacto"
+            },
+            {
+              "name": "articulos",
+              "description": "Articulos pedidos con su cantidad, en una sola linea"
+            },
+            {
+              "name": "fecha_limite",
+              "description": "Fecha en que lo necesitan, formato AAAA-MM-DD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        112
+      ],
+      "name": "Sacar los datos",
+      "id": "2feaaedd-c9e5-40c7-ad1c-bb832d54d218"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        352
+      ],
+      "name": "OpenAI Chat Model (ChatGPT)",
+      "id": "9b90d67e-b39f-42c4-991f-e69c4ba84e81",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Al hacer clic en Ejecutar**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -160
+      ],
+      "name": "[doc] Al hacer clic en Ejecutar",
+      "id": "5897d757-08fb-48c2-be10-8946f60543ee"
+    },
+    {
+      "parameters": {
+        "content": "## El dato de entrada\n**El mail que llego**\n\nUn campo escrito a mano para simular lo que en la vida real llegaría solo (un correo, un formulario, una fila de planilla).\n\nSe cambia el texto de acá y todo el flujo trabaja sobre el caso nuevo.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -160
+      ],
+      "name": "[doc] El mail que llego",
+      "id": "dbc71047-6692-4bbc-8660-6decbc9a12a2"
+    },
+    {
+      "parameters": {
+        "content": "## De texto a columnas\n**Sacar los datos**\n\nConvierte texto libre en datos ordenados, listos para una planilla o un sistema.\n\nCampos que extrae: empresa, contacto, email, articulos, fecha_limite.\n\nSi un campo no está en el texto, corresponde que quede vacío y no inventado.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -160
+      ],
+      "name": "[doc] Sacar los datos",
+      "id": "18cfc8fd-6f24-45bc-9b13-67efa626a168"
+    },
+    {
+      "parameters": {
+        "content": "## El cerebro\n**OpenAI Chat Model (ChatGPT)**\n\nEl modelo que piensa: **ChatGPT (OpenAI)**, modelo `gpt-4o-mini`.\n\nNo cuelga hacia adelante sino hacia abajo: es un accesorio del nodo de arriba.\n\nEs **intercambiable**: se enchufa otro cerebro y el resto del flujo no cambia.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        448,
+        496
+      ],
+      "name": "[doc] OpenAI Chat Model (ChatGPT)",
+      "id": "70968f83-a459-446a-b344-fa942f394a35"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "El mail que llego",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "El mail que llego": {
+      "main": [
+        [
+          {
+            "node": "Sacar los datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model (ChatGPT)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sacar los datos",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8cd0e097-6a84-44f3-833c-fe4ec74ef260",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "T6jJ3mHAaFs0KDSr",
+  "tags": []
+}

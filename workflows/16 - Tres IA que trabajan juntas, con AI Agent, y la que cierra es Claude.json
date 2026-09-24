@@ -1,0 +1,334 @@
+{
+  "name": "16 - Tres IA que trabajan juntas, con AI Agent, y la que cierra es Claude",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "t1",
+      "name": "Al hacer clic en Ejecutar"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "k1",
+              "name": "caso",
+              "value": "Un cliente escribe: 'Hace tres dias que espero el pedido 4021 y nadie me contesta. Necesito saber cuando llega porque tengo el local sin mercaderia.' Lo que sabemos de verdad: el pedido salio del deposito ayer, lo lleva la ruta 8, y la ruta 8 entrega en esa zona los martes y los viernes. No sabemos la hora.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        16
+      ],
+      "id": "s1",
+      "name": "El caso"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Escribi la respuesta para este caso.\n\nDATOS CONOCIDOS:\n{{ $('El caso').item.json.caso }}",
+        "options": {
+          "systemMessage": "Sos quien atiende al cliente en una distribuidora. Escribis como una persona, no como un formulario: cordial, directo y sin formulas vacias.\nRegla que no se negocia: NUNCA afirmes algo que no este en los datos que te dan. Si no sabes una fecha o una hora, no la inventes ni la insinues.\nDevolves unicamente el texto del mensaje, sin titulos ni explicaciones."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "p0",
+      "name": "Paso 1 - ChatGPT redacta el borrador"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Reviza el borrador contra los datos conocidos.\n\nDATOS CONOCIDOS:\n{{ $('El caso').item.json.caso }}\n\nBORRADOR:\n{{ $('Paso 1 - ChatGPT redacta el borrador').item.json.output }}",
+        "options": {
+          "systemMessage": "Sos el supervisor de atencion al cliente. Tu unico trabajo es revisar lo que esta por salir y encontrarle los problemas. NO reescribis nada.\nBuscas tres cosas, en este orden: si afirma algo que no esta en los datos conocidos; si esquiva dar un plazo o lo deja vago; y si suena a excusa.\nDevolves una lista numerada, maximo cuatro puntos, cada uno concreto y citando la parte del borrador que falla. Si algo esta bien, no lo menciones."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        784,
+        0
+      ],
+      "id": "p1",
+      "name": "Paso 2 - Llama revisa y critica"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Escribi la version final.\n\nDATOS CONOCIDOS:\n{{ $('El caso').item.json.caso }}\n\nBORRADOR:\n{{ $('Paso 1 - ChatGPT redacta el borrador').item.json.output }}\n\nOBSERVACIONES DEL SUPERVISOR:\n{{ $('Paso 2 - Llama revisa y critica').item.json.output }}",
+        "options": {
+          "systemMessage": "Sos quien firma la version final que se le manda al cliente. Recibis un borrador y las observaciones de un supervisor, y tu trabajo es entregar el texto corregido.\nAplicas todas las observaciones. No agregas informacion nueva. No inventas fechas ni horas.\nMaximo 70 palabras. Devolves UNICAMENTE el texto final del mensaje, sin titulos, sin comentarios y sin explicar que cambiaste."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1088,
+        0
+      ],
+      "id": "p2",
+      "name": "Paso 3 - Claude escribe la version final",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        320
+      ],
+      "id": "m0",
+      "name": "ChatGPT (nube)",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.1:8b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        768,
+        304
+      ],
+      "id": "m1",
+      "name": "Llama 3.1 8B (nuestro servidor)",
+      "credentials": {
+        "ollamaApi": {
+          "id": "J91bAic0Ejd2JAYu",
+          "name": "Ollama del servidor"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-5-20250929",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        224
+      ],
+      "id": "m2",
+      "name": "Claude (falta cargar la clave)",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// El nodo AI Agent devuelve 'output'; la cadena simple devolvia 'text'.\n// Se leen los dos para que el ejemplo no dependa de cual se use.\nfunction leer(nodo) {\n  try {\n    const j = $(nodo).first().json;\n    const v = (j.output !== undefined && j.output !== null) ? j.output : j.text;\n    return (v === undefined || v === null) ? '' : String(v).trim();\n  } catch (e) { return ''; }\n}\n\nconst caso     = $('El caso').first().json.caso;\nconst borrador = leer('Paso 1 - ChatGPT redacta el borrador');\nconst criticas = leer('Paso 2 - Llama revisa y critica');\n\n// Ojo: un nodo DESACTIVADO en n8n no se saltea, deja pasar los datos del anterior.\n// Si lo que llega del paso 3 es identico a las criticas, Claude no corrio.\nconst crudo = leer('Paso 3 - Claude escribe la version final');\nconst claudeCorrio = crudo !== '' && crudo !== criticas;\nconst final = claudeCorrio ? crudo : null;\n\nconst etapas = [\n  { paso: '1. Redacta',   quien: 'ChatGPT gpt-4o-mini', donde: 'Nube - OpenAI',            texto: borrador },\n  { paso: '2. Critica',   quien: 'Llama 3.1 8B',        donde: 'Local - nuestro servidor', texto: criticas },\n  { paso: '3. Reescribe', quien: 'Claude',              donde: 'Nube - Anthropic',\n    texto: final || 'PENDIENTE: falta cargar la clave de API de Anthropic y activar los dos nodos de Claude' },\n];\n\nconst salida = etapas.map(e => ({\n  json: { paso: e.paso, quien: e.quien, donde: e.donde,\n          palabras: e.texto ? e.texto.split(/\\s+/).length : 0, texto: e.texto }\n}));\n\nsalida.push({ json: {\n  paso: 'RESULTADO', quien: claudeCorrio ? 'Las tres juntas' : '-',\n  donde: '-', palabras: final ? final.split(/\\s+/).length : 0,\n  texto: final || 'Todavia no hay resultado final: Claude es el que cierra y esta desactivado.',\n  caso } });\n\nreturn salida;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        0
+      ],
+      "id": "cmp",
+      "name": "Las tres etapas y el resultado"
+    },
+    {
+      "parameters": {
+        "content": "## Tres IA, y la que cierra es Claude\n\nCada una hace un papel distinto y **recibe lo que hizo la anterior**.\n\n**ChatGPT** redacta el borrador.\n**Llama 3.1**, en nuestro servidor, lo revisa y marca los problemas.\n**Claude** reescribe aplicando esas observaciones y entrega la version final.",
+        "height": 300,
+        "width": 620,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -384
+      ],
+      "id": "Nota 1",
+      "name": "Nota 1"
+    },
+    {
+      "parameters": {
+        "content": "## Aca cada paso es un AI Agent\n\nCompara con el ejemplo 15, que hace lo mismo con *Basic LLM Chain*.\n\nLa diferencia esta adentro de cada nodo: el Agent tiene un campo **System Message** aparte, donde se define **quien es** —el que atiende, el supervisor, el que firma—, separado del pedido concreto.\n\nAbri cualquier paso y mira los dos campos. Eso es lo que se gana.",
+        "height": 300,
+        "width": 600,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -384
+      ],
+      "id": "Nota 2",
+      "name": "Nota 2"
+    },
+    {
+      "parameters": {
+        "content": "## Cuando conviene cada uno\n\nEl Agent puede ademas **usar herramientas y decidir** que hacer. Aca no las usa: los tres pasos son tareas definidas.\n\nSirve igual, porque deja el rol bien escrito y el flujo queda listo para el paso siguiente: enchufarle una herramienta a uno de estos agentes.\n\nPara comparar modelos, como en el ejemplo 14, la cadena simple es mejor: no agrega vueltas.",
+        "height": 300,
+        "width": 580,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -384
+      ],
+      "id": "Nota 3",
+      "name": "Nota 3"
+    },
+    {
+      "parameters": {
+        "content": "## Falta la clave de Anthropic\n\nLos dos nodos de Claude estan **desactivados a proposito**.\n\nPara activarlos: cargar la credencial en el nodo de abajo, elegir el modelo de la lista, y activar **los dos** con el boton derecho, *Activate*.\n\nMientras tanto el flujo **corre igual y no falla**.",
+        "height": 300,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        -384
+      ],
+      "id": "Nota 4",
+      "name": "Nota 4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "El caso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "El caso": {
+      "main": [
+        [
+          {
+            "node": "Paso 1 - ChatGPT redacta el borrador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 1 - ChatGPT redacta el borrador": {
+      "main": [
+        [
+          {
+            "node": "Paso 2 - Llama revisa y critica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 2 - Llama revisa y critica": {
+      "main": [
+        [
+          {
+            "node": "Paso 3 - Claude escribe la version final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 3 - Claude escribe la version final": {
+      "main": [
+        [
+          {
+            "node": "Las tres etapas y el resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT (nube)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 1 - ChatGPT redacta el borrador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llama 3.1 8B (nuestro servidor)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 2 - Llama revisa y critica",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude (falta cargar la clave)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 3 - Claude escribe la version final",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98dee23a-aeb7-4f28-8d73-751bcca3a2b5",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "5iR5IL3GaoA0QkrD",
+  "tags": []
+}

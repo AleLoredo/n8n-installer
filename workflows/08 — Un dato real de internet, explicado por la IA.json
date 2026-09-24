@@ -1,0 +1,196 @@
+{
+  "name": "08 — Un dato real de internet, explicado por la IA",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Ejemplo 6 — Datos de afuera + IA\n\nEl **HTTP Request** trae la cotizacion del dolar de una direccion publica: **sin usuario, sin clave, sin permisos**.\n\nLa IA no adivina el numero: se lo damos nosotros. Eso es lo que evita que invente.",
+        "height": 290,
+        "width": 450,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -160
+      ],
+      "name": "Nota -480_-160",
+      "id": "38825fc3-c429-47fc-8fe8-f3c315faad73"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        112
+      ],
+      "name": "Al hacer clic en Ejecutar",
+      "id": "1cd982e2-cbf1-4480-9417-ec57ec0f40f3"
+    },
+    {
+      "parameters": {
+        "url": "https://www.bcra.gob.ar/relevamiento-expectativas-mercado-rem/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        240,
+        112
+      ],
+      "name": "Traer la cotizacion",
+      "id": "5471f651-659c-4e59-b564-718dc5164076"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sos el analista de una PyME que importa insumos.\n\nEste es el dolar oficial de hoy, tal cual lo devolvio el sistema:\ncompra {{ $json.compra }} / venta {{ $json.venta }}, actualizado {{ $json.fechaActualizacion }}.\n\nEscribi UNA sola frase, de no mas de 25 palabras, para el parte diario de gerencia. Usa los numeros tal cual, no los redondees ni los cambies.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        480,
+        112
+      ],
+      "name": "Explicarlo en una frase",
+      "id": "961355ce-73f6-4385-a5a0-638c53eef6f0"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        352
+      ],
+      "name": "OpenAI Chat Model (ChatGPT)",
+      "id": "e1a5823d-86dc-47cf-9891-54b896196f47",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Al hacer clic en Ejecutar**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -144
+      ],
+      "name": "[doc] Al hacer clic en Ejecutar",
+      "id": "356e1cbd-4d7c-40bb-801b-80e7378c173d"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar un dato afuera\n**Traer la cotizacion**\n\nSale a internet a pedirle información a otro sistema: `https://www.bcra.gob.ar/relevamiento-expectativas-mercado-re…`\n\nEs la forma de traer datos de otro sistema **sin que nadie los copie y pegue a mano**.\n\nLo que vuelve queda disponible para los nodos siguientes.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -144
+      ],
+      "name": "[doc] Traer la cotizacion",
+      "id": "d14b191a-7503-4062-aa2f-87017b0be584"
+    },
+    {
+      "parameters": {
+        "content": "## El pedido a la IA\n**Explicarlo en una frase**\n\nAcá adentro está la instrucción que recibe la IA. Es el nodo que hay que abrir para entender el flujo.\n\nPedido: “=Sos el analista de una PyME que importa insumos. Este es el dolar oficial de hoy, tal cual lo devolvio el sis…”\n\nEl **cerebro** que responde no está acá: cuelga por debajo, y se puede cambiar.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -144
+      ],
+      "name": "[doc] Explicarlo en una frase",
+      "id": "439fd1a5-7dc3-4dcc-be1b-bbb1f9e42fc5"
+    },
+    {
+      "parameters": {
+        "content": "## El cerebro\n**OpenAI Chat Model (ChatGPT)**\n\nEl modelo que piensa: **ChatGPT (OpenAI)**, modelo `gpt-4o-mini`.\n\nNo cuelga hacia adelante sino hacia abajo: es un accesorio del nodo de arriba.\n\nEs **intercambiable**: se enchufa otro cerebro y el resto del flujo no cambia.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        464,
+        512
+      ],
+      "name": "[doc] OpenAI Chat Model (ChatGPT)",
+      "id": "9ddc2061-7ec7-4b59-a466-e8a468718087"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "Traer la cotizacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traer la cotizacion": {
+      "main": [
+        [
+          {
+            "node": "Explicarlo en una frase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model (ChatGPT)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Explicarlo en una frase",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "73cdb004-b4ad-487a-8d69-12e97d5c1f66",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "yZoHz8bTeo4qnBca",
+  "tags": []
+}

@@ -1,0 +1,352 @@
+{
+  "name": "18 - Comite de inversion: tres IA con distinto rol y una decision",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Al hacer clic en Ejecutar",
+      "notesInFlow": true,
+      "id": "e5785e33-f331-499d-b8aa-23fc83b097bf",
+      "notes": "En la lista se llama: Manual Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "i1",
+              "name": "perfil",
+              "value": "Una PyME de Rosario tiene un excedente de caja de $30.000.000. No lo necesita durante 12 meses, salvo unos $5.000.000 que podria llegar a usar de un mes para otro si se le adelanta una compra de mercaderia. Sus costos son en pesos, pero le compra a un proveedor que ajusta por dolar. El dueno dice que no tolera perder capital: prefiere ganar poco antes que arriesgar. No tiene experiencia en inversiones y quiere entender en que se mete.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "name": "El caso: plata, plazo y miedo",
+      "notesInFlow": true,
+      "id": "6db680c8-a184-4e66-8ef0-a1f4761a5f08",
+      "notes": "En la lista se llama: Edit Fields (Set)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Armá la propuesta para este caso.\n\nPERFIL DEL INVERSOR:\n{{ $('El caso: plata, plazo y miedo').item.json.perfil }}",
+        "options": {
+          "systemMessage": "Sos analista de inversiones y tu trabajo es PROPONER opciones, no decidir.\nTrabajas solo con CATEGORIAS de instrumentos que existen en general (plazo fijo, dolar, bonos, fondos comunes, acciones, ladrillos). NUNCA das tasas, precios ni rendimientos actuales: no los tenes, y si los inventas el auditor te lo va a marcar.\nProponés exactamente TRES opciones. Para cada una: nombre de la categoria, el porcentaje del total que le asignarias, y UNA linea explicando por que esa opcion encaja con este perfil en particular (plazo, tolerancia, moneda de los costos, plata que puede necesitar antes).\nFormato: 'Opcion N — categoria — X% — por que'. Nada mas: sin introduccion y sin cierre."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        464,
+        0
+      ],
+      "name": "Paso 1 - El analista propone",
+      "notesInFlow": true,
+      "id": "8c75035a-83ff-44c6-83de-739d1c0124c7",
+      "notes": "En la lista se llama: AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Auditá esta propuesta contra el perfil del inversor.\n\nPERFIL DEL INVERSOR:\n{{ $('El caso: plata, plazo y miedo').item.json.perfil }}\n\nPROPUESTA DEL ANALISTA:\n{{ $('Paso 1 - El analista propone').item.json.output }}",
+        "options": {
+          "systemMessage": "Sos el auditor de riesgos del comite. Tu unico trabajo es encontrarle los problemas a la propuesta. NO proponés alternativas y NO reescribís nada: si te ponés a proponer, dejás de auditar.\nBuscás cuatro cosas, en este orden:\n1. Numeros inventados: cualquier tasa, precio o rendimiento que el analista haya afirmado y que nadie le haya dado.\n2. Choque con el plazo o con la tolerancia al riesgo que el inversor declaro.\n3. Plata que el inversor dijo que podria necesitar antes, metida en algo de donde no la puede sacar.\n4. Demasiado concentrado en un solo instrumento.\nDevolvés una lista numerada, maximo cuatro puntos, cada uno citando la parte exacta de la propuesta que falla. Si algo esta bien, no lo menciones."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        784,
+        0
+      ],
+      "name": "Paso 2 - El auditor busca el riesgo",
+      "notesInFlow": true,
+      "id": "dd1c5d1d-e1d0-4bdb-90cd-1156b5536b3f",
+      "notes": "En la lista se llama: AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Escribí la decision final del comite.\n\nPERFIL DEL INVERSOR:\n{{ $('El caso: plata, plazo y miedo').item.json.perfil }}\n\nPROPUESTA DEL ANALISTA:\n{{ $('Paso 1 - El analista propone').item.json.output }}\n\nOBSERVACIONES DEL AUDITOR:\n{{ $('Paso 2 - El auditor busca el riesgo').item.json.output }}",
+        "options": {
+          "systemMessage": "Sos quien firma la decision del comite y se la explica al dueno de la PyME, que no sabe de inversiones.\nRecibis una propuesta y las observaciones del auditor. Aplicás TODAS las observaciones: si el auditor marco un numero inventado, ese numero no aparece en tu respuesta.\nEntregás exactamente tres bloques, sin titulos en negrita ni adornos:\nLA DECISION: la cartera final, con porcentajes que sumen 100.\nPOR QUE: una linea por instrumento, en castellano simple, conectada con lo que este dueno dijo que le importa.\nANTES DE EJECUTAR: dos o tres datos concretos que hay que ir a buscar en el banco o en el mercado, porque ninguna IA los tiene.\nMaximo 180 palabras. No inventás tasas ni precios."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        0
+      ],
+      "name": "Paso 3 - El comite decide",
+      "notesInFlow": true,
+      "id": "567bbeff-f418-4677-812e-49366ddfe04a",
+      "notes": "En la lista se llama: AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        224
+      ],
+      "name": "ChatGPT (nube)",
+      "notesInFlow": true,
+      "id": "627ca8ac-70a0-4ddf-8f8b-2090c086ed93",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      },
+      "notes": "En la lista se llama: OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "model": "llama3.1:8b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        784,
+        224
+      ],
+      "name": "Llama 3.1 8B (nuestro servidor)",
+      "notesInFlow": true,
+      "id": "a2839e3e-c3ad-43c2-8ac3-8ac8c513edd0",
+      "credentials": {
+        "ollamaApi": {
+          "id": "J91bAic0Ejd2JAYu",
+          "name": "Ollama del servidor"
+        }
+      },
+      "notes": "En la lista se llama: Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        224
+      ],
+      "name": "ChatGPT (nube) - el que cierra",
+      "notesInFlow": true,
+      "id": "9763ac4c-2224-4aeb-b79d-6b564acb4394",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      },
+      "notes": "En la lista se llama: OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El nodo AI Agent devuelve 'output'; la cadena simple devuelve 'text'.\n// Se leen los dos para que el ejemplo no dependa de cual se use.\nfunction leer(nodo) {\n  try {\n    const j = $(nodo).first().json;\n    const v = (j.output !== undefined && j.output !== null) ? j.output : j.text;\n    return (v === undefined || v === null) ? '' : String(v).trim();\n  } catch (e) { return ''; }\n}\n\nconst perfil    = $('El caso: plata, plazo y miedo').first().json.perfil;\nconst propuesta = leer('Paso 1 - El analista propone');\nconst objecion  = leer('Paso 2 - El auditor busca el riesgo');\nconst decision  = leer('Paso 3 - El comite decide');\n\n// Se devuelve todo junto para poder LEER EL PROCESO, no solo el resultado:\n// la gracia del ejemplo es ver como cambia la propuesta despues de la auditoria.\nreturn [{\n  json: {\n    '1_el_caso': perfil,\n    '2_lo_que_propuso_el_analista': propuesta,\n    '3_lo_que_objeto_el_auditor': objecion,\n    '4_lo_que_decidio_el_comite': decision,\n    aviso: 'Ejemplo de clase con un caso inventado. No es una recomendacion de inversion.'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        0
+      ],
+      "name": "Las tres miradas y la decision",
+      "notesInFlow": true,
+      "id": "5d07a0ae-5f00-4135-b42d-d6f54b1ef2c7",
+      "notes": "En la lista se llama: Code"
+    },
+    {
+      "parameters": {
+        "content": "## Un comite de inversion, con tres IA\n\nUna sola pregunta —*¿que hago con esta plata?*— pasa por **tres cabezas distintas**, y cada una ve algo que la anterior no vio.\n\n**ChatGPT** hace de analista y propone tres opciones.\n**Llama 3.1**, en nuestro servidor, hace de auditor: le busca los agujeros.\n**ChatGPT** vuelve al final, pero con otro sombrero: decide y se lo explica al dueno.\n\nEjecutalo y mira el resultado: se ve **como cambia la propuesta** despues de que la auditan.",
+        "height": 320,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -400
+      ],
+      "name": "Nota 1",
+      "id": "054243c0-5c3d-4025-920a-73f19442bb34"
+    },
+    {
+      "parameters": {
+        "content": "## Por que el prompt esta armado asi\n\nAbri cualquiera de los tres pasos: cada uno tiene **System Message** (quien es) separado del pedido (que tiene que hacer ahora). Esa separacion es todo el truco.\n\n🔑 Fijate en el auditor: dice **\"NO proponés alternativas\"**. Sin esa linea, el auditor empieza a sugerir carteras y deja de auditar — y entonces tenes dos analistas y ningun control.\n\n**Un rol que hace de todo no controla nada.** Por eso cada uno tiene prohibido hacer el trabajo del otro.",
+        "height": 320,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -400
+      ],
+      "name": "Nota 2",
+      "id": "3a5eb60e-60b2-47fa-99ee-163c01d2c4c5"
+    },
+    {
+      "parameters": {
+        "content": "## El punto que importa de verdad\n\nNinguna de estas IA sabe la tasa de hoy, ni el precio del dolar, ni cuanto rindio un bono. **No tienen datos del mercado.**\n\nPor eso el auditor tiene como **tarea numero 1** cazar tasas y rendimientos inventados, y el que decide cierra con *\"antes de ejecutar, anda a buscar estos datos\"*.\n\nAsi se usa una IA para decidir: **para ordenar el razonamiento**, no para que te tire un numero que no puede saber.",
+        "height": 320,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        -400
+      ],
+      "name": "Nota 3",
+      "id": "8b175bfe-5a7e-43c0-99dc-22c545ca99df"
+    },
+    {
+      "parameters": {
+        "content": "## Como encontrar estos nodos en la lista\n\nLos nodos estan **renombrados en castellano** para que se entienda el flujo. Debajo de cada uno figura **como se llama en el menu** de n8n, que es lo que hay que escribir en el buscador al agregarlo:\n\n**AI Agent** — los tres pasos\n**OpenAI Chat Model** / **Ollama Chat Model** — los cerebros, colgados abajo\n**Edit Fields (Set)** — el caso\n**Code** — el resumen final\n**Manual Trigger** — el boton de arranque\n\n---\n⚠️ Caso inventado para la clase. **No es una recomendacion de inversion.**",
+        "height": 380,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        -400
+      ],
+      "name": "Nota 4",
+      "id": "b338381e-79f5-4ae0-b073-7b870e559a8b"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "El caso: plata, plazo y miedo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "El caso: plata, plazo y miedo": {
+      "main": [
+        [
+          {
+            "node": "Paso 1 - El analista propone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 1 - El analista propone": {
+      "main": [
+        [
+          {
+            "node": "Paso 2 - El auditor busca el riesgo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 2 - El auditor busca el riesgo": {
+      "main": [
+        [
+          {
+            "node": "Paso 3 - El comite decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paso 3 - El comite decide": {
+      "main": [
+        [
+          {
+            "node": "Las tres miradas y la decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT (nube)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 1 - El analista propone",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llama 3.1 8B (nuestro servidor)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 2 - El auditor busca el riesgo",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT (nube) - el que cierra": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paso 3 - El comite decide",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bef618e5-e060-42e1-aed1-b820028f9c40",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "LhjTJW89OeM5fzIO",
+  "tags": []
+}

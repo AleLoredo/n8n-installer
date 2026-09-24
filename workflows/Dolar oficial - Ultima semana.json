@@ -1,0 +1,80 @@
+{
+  "name": "Dolar oficial - Ultima semana",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "91595161-e624-4a6f-a16b-53063c81123f",
+      "name": "Iniciar demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.argentinadatos.com/v1/cotizaciones/dolares/oficial",
+        "options": {}
+      },
+      "id": "f7940422-04a6-4a84-a104-fbfa75ac741f",
+      "name": "Consultar historial del dolar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -304,
+        -192
+      ],
+      "notes": "quiero ver dolar oficial"
+    },
+    {
+      "parameters": {
+        "jsCode": "const hoy = $now.setZone('America/Argentina/Buenos_Aires').startOf('day');\nconst desde = hoy.minus({ days: 7 }).toISODate();\nconst hasta = hoy.toISODate();\nconst datos = $input.all().flatMap(item => Array.isArray(item.json) ? item.json : [item.json]);\nconst filas = datos\n  .filter(d => d.fecha >= desde && d.fecha < hasta && d.casa === 'oficial')\n  .sort((a, b) => a.fecha.localeCompare(b.fecha))\n  .map(d => ({ json: { fecha: d.fecha, compra: d.compra, venta: d.venta, moneda: 'ARS por USD' } }));\nif (!filas.length) throw new Error('La fuente no devolvio cotizaciones para los ultimos 7 dias completos.');\nreturn filas;"
+      },
+      "id": "a4e49d9a-ee46-4a2b-9b7d-693a115b22cc",
+      "name": "Ver ultima semana",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -192
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Iniciar demo": {
+      "main": [
+        [
+          {
+            "node": "Consultar historial del dolar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar historial del dolar": {
+      "main": [
+        [
+          {
+            "node": "Ver ultima semana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c60bcfd3-c6ca-45b5-87cb-0998b19bbab9",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "a3f0WReSUGPvzwA3",
+  "tags": []
+}

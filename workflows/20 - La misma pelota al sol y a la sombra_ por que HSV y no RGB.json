@@ -1,0 +1,117 @@
+{
+  "name": "20 - La misma pelota al sol y a la sombra: por que HSV y no RGB",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "t1",
+      "name": "Al hacer clic en Ejecutar"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------------------------------------------------------------------------\n// La escena del pase de salida, armada a mano: una pelota naranja sobre un\n// fondo, con la mitad izquierda al sol y la mitad derecha a la sombra.\n// Cada pixel son TRES numeros, no uno. Eso es todo lo que cambia con el color.\n// ---------------------------------------------------------------------------\nconst N = 20;\nconst SOMBRA = 0.45;                 // la sombra baja la luz, no cambia el color\nconst NARANJA = [230, 120, 30];\nconst FONDO   = [60, 70, 85];\n\nconst img = [];                       // img[y][x] = [R, G, B]\nfor (let y = 0; y < N; y++) {\n  const fila = [];\n  for (let x = 0; x < N; x++) {\n    const dx = x - 9.5, dy = y - 9.5;\n    const dentro = (dx * dx + dy * dy) <= 42;          // la pelota\n    let px = dentro ? NARANJA.slice() : FONDO.slice();\n    if (x >= N / 2) px = px.map(v => Math.round(v * SOMBRA));   // la sombra\n    fila.push(px);\n  }\n  img.push(fila);\n}\n\n// ---------------------------------------------------------------------------\n// RGB -> HSV. H en grados (0-360), S y V entre 0 y 1.\n// ---------------------------------------------------------------------------\nfunction aHSV(r, g, b) {\n  r /= 255; g /= 255; b /= 255;\n  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;\n  let h = 0;\n  if (d !== 0) {\n    if (max === r)      h = 60 * (((g - b) / d) % 6);\n    else if (max === g) h = 60 * (((b - r) / d) + 2);\n    else                h = 60 * (((r - g) / d) + 4);\n  }\n  if (h < 0) h += 360;\n  return { h: h, s: max === 0 ? 0 : d / max, v: max };\n}\n\n// Un pixel de la pelota al sol y otro a la sombra, para comparar.\nconst alSol    = img[9][6];\nconst aLaSombra = img[9][13];\nconst hsvSol    = aHSV(alSol[0], alSol[1], alSol[2]);\nconst hsvSombra = aHSV(aLaSombra[0], aLaSombra[1], aLaSombra[2]);\n\nconst salida = [];\n\n// --- 1. La imagen, y que es un canal --------------------------------------\nconst ESCALA = ' .:-=+*#%@';\nfunction dibujarCanal(c) {\n  return img.map(f => f.map(px => {\n    const i = Math.round((px[c] / 255) * (ESCALA.length - 1));\n    return ESCALA[i] + ESCALA[i];\n  }).join('')).join('\\n');\n}\n\nsalida.push({\n  paso: '1. Una imagen en color son TRES matrices',\n  tamanio: N + ' x ' + N + ' x 3 = ' + (N * N * 3) + ' numeros',\n  canal_R: dibujarCanal(0),\n  canal_G: dibujarCanal(1),\n  canal_B: dibujarCanal(2),\n  ojo: 'El canal rojo no se ve rojo: es un mapa de cuanto rojo hay en cada lugar.',\n});\n\n// --- 2. La trampa de OpenCV ------------------------------------------------\nsalida.push({\n  paso: '2. La trampa del BGR',\n  el_pixel_bien_leido_RGB: 'R=' + alSol[0] + ' G=' + alSol[1] + ' B=' + alSol[2] + '  -> naranja',\n  el_mismo_leido_como_BGR: 'R=' + alSol[2] + ' G=' + alSol[1] + ' B=' + alSol[0] + '  -> celeste',\n  por_eso: 'Los mismos tres numeros, en otro orden, son otro color. OpenCV lee BGR y Pillow RGB.',\n});\n\n// --- 3. Grises: promedio simple contra ponderado ---------------------------\nconst grisSimple = Math.round((alSol[0] + alSol[1] + alSol[2]) / 3);\nconst grisPond = Math.round(0.299 * alSol[0] + 0.587 * alSol[1] + 0.114 * alSol[2]);\nsalida.push({\n  paso: '3. Pasar a grises no es promediar',\n  promedio_simple: '(230 + 120 + 30) / 3 = ' + grisSimple,\n  formula_ponderada: '0.299*R + 0.587*G + 0.114*B = ' + grisPond,\n  diferencia: Math.abs(grisPond - grisSimple) + ' niveles sobre 255',\n  por_que: 'El ojo es mucho mas sensible al verde que al azul. El promedio simple no lo respeta.',\n});\n\n// --- 4. El remate: RGB contra HSV -----------------------------------------\nfunction pct(x) { return (x * 100).toFixed(1) + ' %'; }\nconst difRGB = Math.round(\n  (Math.abs(alSol[0] - aLaSombra[0]) + Math.abs(alSol[1] - aLaSombra[1]) +\n   Math.abs(alSol[2] - aLaSombra[2])) / 3);\n\nsalida.push({\n  paso: '4. La misma pelota, al sol y a la sombra',\n  en_RGB_al_sol:      'R=' + alSol[0] + ' G=' + alSol[1] + ' B=' + alSol[2],\n  en_RGB_a_la_sombra: 'R=' + aLaSombra[0] + ' G=' + aLaSombra[1] + ' B=' + aLaSombra[2],\n  en_RGB_cambian:     'los TRES canales, ' + difRGB + ' niveles en promedio',\n  en_HSV_al_sol:      'H=' + hsvSol.h.toFixed(1) + ' grados   S=' + pct(hsvSol.s) + '   V=' + pct(hsvSol.v),\n  en_HSV_a_la_sombra: 'H=' + hsvSombra.h.toFixed(1) + ' grados   S=' + pct(hsvSombra.s) + '   V=' + pct(hsvSombra.v),\n  el_tono_se_movio:   Math.abs(hsvSol.h - hsvSombra.h).toFixed(2) + ' grados',\n  conclusion: 'En RGB el sol y la sombra son dos colores distintos. En HSV es el MISMO tono ' +\n              'con menos luz. Por eso un filtro por color se hace en HSV.',\n});\n\nreturn salida.map(json => ({ json }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "px",
+      "name": "Los canales, el gris y el HSV"
+    },
+    {
+      "parameters": {
+        "content": "## Que hay que mirar aca\n\nEste flujo **no llama a ninguna IA**. No hay clave, no hay internet, no hay modelo. Es la aritmetica de la imagen, hecha en un solo nodo **Code**.\n\nApreta **Ejecutar**, abri el nodo y pasa la salida a la vista **JSON**. Los campos `canal_R`, `canal_G` y `canal_B` traen la imagen dibujada con caracteres.",
+        "height": 320,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -400
+      ],
+      "id": "Nota 1",
+      "name": "Nota 1"
+    },
+    {
+      "parameters": {
+        "content": "## Primero: que es un canal\n\nLa escena es **una pelota naranja**, con la mitad izquierda al sol y la derecha a la sombra.\n\nMira los tres canales por separado. En el **rojo** la pelota resalta clarisima contra el fondo. En el **azul** se da vuelta: queda **mas oscura que el fondo**, porque el naranja casi no tiene azul y el fondo es azulado.\n\nEs el mismo objeto y en un canal es lo mas claro de la imagen y en otro lo mas oscuro. Ahi se entiende que **elegir el canal ya es media resolucion del problema**.\n\nY ojo con la mitad derecha: **los tres canales bajan a la vez**. Eso es la sombra.",
+        "height": 320,
+        "width": 580,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -400
+      ],
+      "id": "Nota 2",
+      "name": "Nota 2"
+    },
+    {
+      "parameters": {
+        "content": "## El remate, que es el punto de la clase\n\nEl ultimo item compara el **mismo punto de la pelota** al sol y a la sombra:\n\n- En **RGB** cambian los tres numeros, mucho. Son dos colores distintos.\n- En **HSV** el **tono no se mueve**: lo unico que baja es el valor, que es la luz.\n\nPor eso, para detectar algo por su color, se filtra por tono en HSV y no en RGB.\n\nEs, palabra por palabra, la pregunta escrita del pase de salida.",
+        "height": 320,
+        "width": 620,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -400
+      ],
+      "id": "Nota 3",
+      "name": "Nota 3"
+    },
+    {
+      "parameters": {
+        "content": "## Para que lo toquen ellos\n\nEn el nodo **Code**, arriba de todo, cambia `SOMBRA` de `0.45` a `0.2`: la sombra se hace mucho mas oscura, en RGB la diferencia se dispara y **el tono sigue clavado**.\n\nDespues cambia `NARANJA` por `[30, 200, 90]` y fijate que el tono pasa a ~140 grados, que es el verde.\n\nY el item 2 muestra la trampa del BGR: **los mismos tres numeros en otro orden son otro color**. Es el error mas comun de toda la materia.",
+        "height": 320,
+        "width": 580,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -400
+      ],
+      "id": "Nota 4",
+      "name": "Nota 4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "Los canales, el gris y el HSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1171c666-bb9b-4750-ba69-8af2b4fd6850",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "47SR38Nv11xwY6tX",
+  "tags": []
+}

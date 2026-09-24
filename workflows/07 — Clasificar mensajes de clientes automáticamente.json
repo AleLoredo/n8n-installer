@@ -1,0 +1,255 @@
+{
+  "name": "07 — Clasificar mensajes de clientes automáticamente",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Ejemplo 3 — Clasificar\n\nSeis mensajes entran juntos. El **Split Out** los separa en seis filas.\n\nEl **Text Classifier** manda cada uno por la salida que corresponde. Fijate que el nodo tiene **cuatro salidas**, una por categoria.\n\nAca no se escribe el prompt: se escriben las categorias.",
+        "height": 320,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -144
+      ],
+      "name": "Nota -460_-140",
+      "id": "7fd9a3e1-427e-4742-a2ea-2bd43ea14ba1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        112
+      ],
+      "name": "Al hacer clic en Ejecutar",
+      "id": "0c53bef6-fc57-49a6-93a3-3cba76543cd0"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { mensajes: [\n  'Hace tres dias que espero el pedido 4021 y nadie me contesta.',\n  'Buenas, queria saber el precio por 100 unidades del articulo A-15.',\n  'URGENTE: la maquina se paro y tenemos la linea frenada.',\n  'Gracias por la atencion de ayer, quedamos muy conformes.',\n  'Me llego la factura con el CUIT mal, necesito nota de credito.',\n  'Hola, tienen sucursal en Rosario?'\n] } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        112
+      ],
+      "name": "Los 6 mensajes",
+      "id": "86c1da6d-eca7-4021-913d-f6f6c2d97cb6"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "mensajes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        448,
+        112
+      ],
+      "name": "Uno por fila",
+      "id": "1fc4465e-a6c2-45ef-92eb-af4b785b3fc9"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.mensajes }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Reclamo",
+              "description": "El cliente esta disconforme o algo salio mal"
+            },
+            {
+              "category": "Consulta comercial",
+              "description": "Pregunta por precios, stock, sucursales o productos"
+            },
+            {
+              "category": "Urgencia",
+              "description": "Algo esta frenado o parado y necesita respuesta ya"
+            },
+            {
+              "category": "Administracion",
+              "description": "Facturas, notas de credito, CUIT, pagos"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        112
+      ],
+      "name": "Clasificar",
+      "id": "b6d1082f-179d-4f02-b4b4-a7c95d50df02"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        352
+      ],
+      "name": "OpenAI Chat Model (ChatGPT)",
+      "id": "ce34667d-43e7-422d-907a-809ce436f8c9",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Al hacer clic en Ejecutar**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -160
+      ],
+      "name": "[doc] Al hacer clic en Ejecutar",
+      "id": "d9b0b3f1-1cdb-4a8d-bf17-dda92a28ee68"
+    },
+    {
+      "parameters": {
+        "content": "## Datos de ejemplo\n**Los 6 mensajes**\n\nUn pedazo de código que arma los datos de prueba, escritos a mano.\n\nPermite ensayar el flujo sin conectar todavía el correo ni el sistema real.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        208,
+        -160
+      ],
+      "name": "[doc] Los 6 mensajes",
+      "id": "b4b7b691-312d-4d7d-869c-8bfd52651b7b"
+    },
+    {
+      "parameters": {
+        "content": "## Partir la lista\n**Uno por fila**\n\nConvierte un paquete de varios elementos en filas sueltas: de 6 mensajes juntos salen 6 elementos.\n\nA partir de acá, cada paso se ejecuta una vez por elemento.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -160
+      ],
+      "name": "[doc] Uno por fila",
+      "id": "7016d592-a21a-4be8-b99e-a810a4fbeead"
+    },
+    {
+      "parameters": {
+        "content": "## Clasificar\n**Clasificar**\n\nLee cada mensaje y lo mete en una categoría. No inventa: elige entre las que están definidas en el nodo.\n\nCategorías: Reclamo, Consulta comercial, Urgencia, Administracion.\n\nCada categoría es una salida distinta: sirve para derivar el trabajo a quien corresponda.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -160
+      ],
+      "name": "[doc] Clasificar",
+      "id": "7b2c07c7-fc97-4191-9db2-b1a2d0bf71a4"
+    },
+    {
+      "parameters": {
+        "content": "## El cerebro\n**OpenAI Chat Model (ChatGPT)**\n\nEl modelo que piensa: **ChatGPT (OpenAI)**, modelo `gpt-4o-mini`.\n\nNo cuelga hacia adelante sino hacia abajo: es un accesorio del nodo de arriba.\n\nEs **intercambiable**: se enchufa otro cerebro y el resto del flujo no cambia.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        496
+      ],
+      "name": "[doc] OpenAI Chat Model (ChatGPT)",
+      "id": "fa931b1d-f92e-4ff3-a3b6-4de19481c773"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "Los 6 mensajes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Los 6 mensajes": {
+      "main": [
+        [
+          {
+            "node": "Uno por fila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Uno por fila": {
+      "main": [
+        [
+          {
+            "node": "Clasificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model (ChatGPT)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Clasificar",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "19cd67b2-2cb5-42ef-9786-8ae0ea348761",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "qBhHQum4otC3nwXB",
+  "tags": []
+}

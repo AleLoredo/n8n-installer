@@ -1,0 +1,117 @@
+{
+  "name": "19 - El filtro que ve bordes: por que una convolucion le gana a una red densa",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "t1",
+      "name": "Al hacer clic en Ejecutar"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------------------------------------------------------------------------\n// Una imagen chiquita, hecha a mano: un cuadrado claro y una diagonal.\n// 18x18 pixeles en escala de grises, 0 = negro, 255 = blanco.\n// ---------------------------------------------------------------------------\nconst N = 18;\nconst imagen = [];\nfor (let y = 0; y < N; y++) {\n  const fila = [];\n  for (let x = 0; x < N; x++) {\n    let v = 25;                                   // el fondo\n    if (x >= 5 && x <= 12 && y >= 5 && y <= 12) v = 205;   // el cuadrado\n    if (Math.abs(x - y) <= 0 && x >= 1 && x <= 16) v = 240; // la diagonal\n    fila.push(v);\n  }\n  imagen.push(fila);\n}\n\n// ---------------------------------------------------------------------------\n// Tres filtros de 3x3. Nueve numeros cada uno. Eso es todo lo que aprende\n// una capa convolucional por filtro.\n// ---------------------------------------------------------------------------\nconst FILTROS = [\n  { nombre: 'Borde vertical',   k: [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]] },\n  { nombre: 'Borde horizontal', k: [[-1, -2, -1], [0, 0, 0], [1, 2, 1]] },\n  { nombre: 'Desenfoque',       k: [[1, 1, 1], [1, 1, 1], [1, 1, 1]].map(f => f.map(v => v / 9)) },\n];\n\n// La convolucion, entera. Son ocho lineas.\nfunction convolucionar(img, k) {\n  const alto = img.length, ancho = img[0].length, lado = k.length;\n  const salida = [];\n  for (let y = 0; y + lado <= alto; y++) {\n    const fila = [];\n    for (let x = 0; x + lado <= ancho; x++) {\n      let suma = 0;\n      for (let j = 0; j < lado; j++)\n        for (let i = 0; i < lado; i++)\n          suma += img[y + j][x + i] * k[j][i];\n      fila.push(suma);\n    }\n    salida.push(fila);\n  }\n  return salida;\n}\n\n// Para poder mirarlo: cada numero se dibuja con un caracter segun su fuerza.\nconst ESCALA = ' .:-=+*#%@';\nfunction dibujar(m) {\n  let max = 0;\n  for (const f of m) for (const v of f) max = Math.max(max, Math.abs(v));\n  if (max === 0) max = 1;\n  return m.map(f => f.map(v => {\n    const i = Math.round((Math.abs(v) / max) * (ESCALA.length - 1));\n    return ESCALA[i] + ESCALA[i];        // doble, para que quede cuadrado\n  }).join('')).join('\\n');\n}\n\nconst salida = [];\n\nsalida.push({\n  paso: '1. La imagen que entra',\n  tamanio: N + ' x ' + N + ' = ' + (N * N) + ' numeros',\n  dibujo: dibujar(imagen),\n});\n\nfor (const f of FILTROS) {\n  const mapa = convolucionar(imagen, f.k);\n  salida.push({\n    paso: '2. Filtro: ' + f.nombre,\n    nucleo: f.k.map(fila => fila.map(v => v.toFixed(2).padStart(6)).join(' ')).join('\\n'),\n    pesos_del_filtro: 9,\n    tamanio_del_mapa: mapa.length + ' x ' + mapa[0].length,\n    dibujo: dibujar(mapa),\n  });\n}\n\n// ---------------------------------------------------------------------------\n// La cuenta de la lamina 11, hecha de verdad.\n// ---------------------------------------------------------------------------\nconst LADO = 224, CANALES = 3, NEURONAS = 1000, FILTROS_CONV = 16;\nconst entradas = LADO * LADO * CANALES;\nconst densa = entradas * NEURONAS + NEURONAS;\nconst conv = (3 * 3 * CANALES + 1) * FILTROS_CONV;\n\nsalida.push({\n  paso: '3. Por que la convolucion gana',\n  imagen_de_referencia: LADO + ' x ' + LADO + ' en color = ' + entradas.toLocaleString('es-AR') + ' numeros de entrada',\n  red_densa_primera_capa: densa.toLocaleString('es-AR') + ' parametros (capa oculta de ' + NEURONAS + ' neuronas)',\n  capa_convolucional: conv.toLocaleString('es-AR') + ' parametros (' + FILTROS_CONV + ' filtros de 3x3)',\n  la_densa_usa: Math.round(densa / conv).toLocaleString('es-AR') + ' veces mas parametros',\n  tamanio_de_salida: 'formula: (32 - 3 + 0) / 1 + 1 = 30, o sea 30 x 30 x ' + FILTROS_CONV,\n});\n\nreturn salida.map(json => ({ json }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "cv",
+      "name": "La convolucion, a mano"
+    },
+    {
+      "parameters": {
+        "content": "## Que hay que mirar aca\n\nEste flujo **no llama a ninguna IA**. No hay clave, no hay internet, no hay modelo. Es la cuenta de la convolucion hecha a mano, en un solo nodo **Code**.\n\nApreta **Ejecutar** y abri el nodo del medio. En la salida, pasa a la vista **JSON** y mira el campo `dibujo`: ahi esta la imagen dibujada con caracteres.",
+        "height": 320,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -400
+      ],
+      "id": "Nota 1",
+      "name": "Nota 1"
+    },
+    {
+      "parameters": {
+        "content": "## Lo que van a ver\n\nPrimero **la imagen**: un cuadrado claro y una diagonal.\n\nDespues **el mismo cuadrado pasado por tres filtros de 3x3**:\n\n- *Borde vertical*: se encienden los dos lados del cuadrado, y los de arriba y abajo no.\n- *Borde horizontal*: al reves, se encienden arriba y abajo.\n- *Desenfoque*: no marca nada, lo emprolija.\n\nLa **diagonal aparece en los dos**, y esta bien: una diagonal tiene las dos componentes. Sirve para aclarar que un filtro no detecta objetos, detecta *orientaciones*.\n\nNadie le dijo al filtro donde estaba el borde. **Salio de multiplicar nueve numeros.**",
+        "height": 320,
+        "width": 580,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -400
+      ],
+      "id": "Nota 2",
+      "name": "Nota 2"
+    },
+    {
+      "parameters": {
+        "content": "## El remate, que es el punto de la clase\n\nEl ultimo item hace la cuenta de la lamina 11 con numeros reales:\n\nUna foto de 224x224 en color son **150.528 numeros**. Una sola capa densa de 1.000 neuronas necesita **mas de 150 millones de parametros**. Una capa convolucional de 16 filtros de 3x3 necesita **448**.\n\nEs la misma tarea. **Trescientas mil veces menos parametros.**\n\nY la razon esta arriba: los mismos nueve numeros se usan en TODA la imagen, en vez de tener un peso distinto por pixel.",
+        "height": 320,
+        "width": 620,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -400
+      ],
+      "id": "Nota 3",
+      "name": "Nota 3"
+    },
+    {
+      "parameters": {
+        "content": "## Para que lo toquen ellos\n\nAbri el nodo **Code** y cambia el nucleo del primer filtro. Probar `[[1,0,-1],[1,0,-1],[1,0,-1]]` y ver que el borde se enciende igual pero del otro signo.\n\nY probar uno inventado, todo ceros salvo el centro: la imagen sale igual. **Ese filtro no aprendio nada**, y es exactamente lo que le pasa a una red al empezar, antes de entrenar.",
+        "height": 320,
+        "width": 560,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -400
+      ],
+      "id": "Nota 4",
+      "name": "Nota 4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "La convolucion, a mano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ca10c6ea-735b-4906-abf0-95452c241174",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "uFrpfI0aTGUiFPNe",
+  "tags": []
+}

@@ -1,0 +1,158 @@
+{
+  "name": "01 — Léeme: claves y credenciales del curso",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## APIs del curso — para copiar y pegar\n\n**Las cuatro APIs de los proyectos de ORT.** Todas piden la clave en la cabecera `X-API-Key`,\nque ya esta cargada como credencial: en un nodo **HTTP Request** elegis\nAuthentication → *Generic Credential Type* → *Header Auth* → **APIs de ORT (X-API-Key)**.\n\n| Que es | Direccion |\n|---|---|\n| AstroLearn (planetas) | `https://ort.nilosolutions.com/api/astrolearn` |\n| AprendiendoLSA (senas) | `https://ort.nilosolutions.com/api/lsa` |\n| Roperito (ropa) | `https://ort.nilosolutions.com/api/roperito` |\n| IA del servidor | `https://ort.nilosolutions.com/api/ia` |\n\nAgregandole `/docs` a cualquiera de esas se abre la documentacion con todos los pedidos.",
+        "height": 420,
+        "width": 640,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -368
+      ],
+      "id": "n1",
+      "name": "APIs"
+    },
+    {
+      "parameters": {
+        "content": "## Para probar ya\n\n`GET /space` → los planetas y constelaciones\n`GET /space?categoria=planeta` → solo los planetas\n`GET /noticias` · `GET /posts` · `GET /eventos`\n`GET /senas` (en la de LSA) · `GET /productos` (en la de Roperito)\n\n**Para crear algo**, POST con el cuerpo en JSON. Ejemplo en `/space`:\n`{ \"id\": \"kepler-22b\", \"categoria\": \"planeta\", \"nombre\": \"Kepler-22b\" }`\n\nCodigos: **401** la clave · **404** la direccion · **422** el cuerpo · **429** el tope del dia.",
+        "height": 380,
+        "width": 460,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -368
+      ],
+      "id": "n2",
+      "name": "Ejemplos"
+    },
+    {
+      "parameters": {
+        "content": "## Inteligencia artificial, tres formas\n\n**1. ChatGPT** — nodo *OpenAI*, credencial **OpenAI (ChatGPT)**, ya cargada.\n\n**2. Modelos del servidor, gratis** — nodo *Ollama*, credencial **Ollama del servidor**.\nModelos: `llama3.1:8b`, `qwen2.5:32b`, `mistral:7b`.\n\n**3. Por HTTP, sin nodo de IA** — `POST https://ort.nilosolutions.com/api/ia/preguntar`\ncon Header Auth y cuerpo `{ \"pregunta\": \"...\" }`. Devuelve `{ \"respuesta\": \"...\" }`.\n\nEl asistente de AstroLearn ademas **mira imagenes**:\n`POST /api/astrolearn/chat` con `{ \"pregunta\": \"...\", \"imagen\": \"<url>\" }`.",
+        "height": 380,
+        "width": 560,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        112
+      ],
+      "id": "n3",
+      "name": "IA"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        192,
+        192
+      ],
+      "id": "n4",
+      "name": "Al hacer clic en Probar"
+    },
+    {
+      "parameters": {
+        "url": "https://ort.nilosolutions.com/api/astrolearn/space",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        192
+      ],
+      "id": "n5",
+      "name": "Traer los planetas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "iZ61aq7vurNt3ftz",
+          "name": "APIs de ORT (X-API-Key)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Las claves, para copiar y pegar\n\n**No las compartan fuera de la clase.** La de OpenAI se paga por uso.\n\n**Clave de las APIs de ORT** — va en la cabecera `X-API-Key`:\n```\nort5-2026-381511baa891\n```\n\n**Clave de OpenAI** — va en el nodo de OpenAI, campo API Key:\n```\n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\n```\n\n**Ollama del servidor** (gratis, sin clave): `https://ollama.nilosolutions.com`\n\nLas tres ya estan cargadas como credenciales; esto es por si las necesitan sueltas.",
+        "height": 420,
+        "width": 560,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        624,
+        144
+      ],
+      "id": "n6",
+      "name": "Claves"
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Al hacer clic en Probar**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -80
+      ],
+      "name": "[doc] Al hacer clic en Probar",
+      "id": "95e0c4a5-e06e-40b2-8891-326bbc98543e"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar un dato afuera\n**Traer los planetas**\n\nSale a internet a pedirle información a otro sistema: `https://ort.nilosolutions.com/api/astrolearn/space`\n\nEs la forma de traer datos de otro sistema **sin que nadie los copie y pegue a mano**.\n\nLo que vuelve queda disponible para los nodos siguientes.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -80
+      ],
+      "name": "[doc] Traer los planetas",
+      "id": "34dfd20f-c7db-4d90-976f-ab1f1281cbb0"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Probar": {
+      "main": [
+        [
+          {
+            "node": "Traer los planetas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3e7fc423-6bb6-4725-8a22-7f94f5d54427",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "8izmIymp86bVJw8t",
+  "tags": []
+}

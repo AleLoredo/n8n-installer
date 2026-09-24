@@ -1,0 +1,196 @@
+{
+  "name": "04 — Cambiar el cerebro sin tocar el flujo",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        112
+      ],
+      "name": "Al hacer clic en Ejecutar",
+      "id": "31bef78c-caf5-4b72-a179-c5a4494aa3dc"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Sos el gerente comercial. Escribi un mail breve (maximo 90 palabras) avisandole a un cliente que su pedido se demora una semana. Tono cordial, sin excusas largas, y ofrece una alternativa.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        240,
+        112
+      ],
+      "name": "Redacta el mail",
+      "id": "6e4dc9ea-bd18-40c0-a5ac-15d9f4c49ff4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        352
+      ],
+      "name": "Cerebro rápido y barato (gpt-4o-mini)",
+      "id": "3f7c54ff-422d-42f8-9b4f-53b6343be7b9",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        352
+      ],
+      "name": "Cerebro más potente (gpt-4o)",
+      "id": "ef29a233-3349-436a-ad31-852bad6ed7be",
+      "credentials": {
+        "openAiApi": {
+          "id": "vuOULb0W4LszegxS",
+          "name": "OpenAI (ChatGPT)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Al hacer clic en Ejecutar**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -160
+      ],
+      "name": "[doc] Al hacer clic en Ejecutar",
+      "id": "cc326b5f-de17-4bd1-aa86-bbee5942dd66"
+    },
+    {
+      "parameters": {
+        "content": "## El pedido a la IA\n**Redacta el mail**\n\nAcá adentro está la instrucción que recibe la IA. Es el nodo que hay que abrir para entender el flujo.\n\nPedido: “Sos el gerente comercial. Escribi un mail breve (maximo 90 palabras) avisandole a un cliente que su pedido se …”\n\nEl **cerebro** que responde no está acá: cuelga por debajo, y se puede cambiar.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -160
+      ],
+      "name": "[doc] Redacta el mail",
+      "id": "ceceff23-ee99-4443-8d88-964527090d47"
+    },
+    {
+      "parameters": {
+        "content": "## El cerebro\n**Cerebro rápido y barato (gpt-4o-mini)**\n\nEl modelo que piensa: **ChatGPT (OpenAI)**, modelo `gpt-4o-mini`.\n\nNo cuelga hacia adelante sino hacia abajo: es un accesorio del nodo de arriba.\n\nEs **intercambiable**: se enchufa otro cerebro y el resto del flujo no cambia.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        496
+      ],
+      "name": "[doc] Cerebro rápido y barato (gpt-4o-mini)",
+      "id": "e7e3545f-e8d1-4447-b32a-b3f75cab2dea"
+    },
+    {
+      "parameters": {
+        "content": "## El cerebro\n**Cerebro más potente (gpt-4o)**\n\nEl modelo que piensa: **ChatGPT (OpenAI)**, modelo `gpt-4o`.\n\nNo cuelga hacia adelante sino hacia abajo: es un accesorio del nodo de arriba.\n\nEs **intercambiable**: se enchufa otro cerebro y el resto del flujo no cambia.\n\n_[doc]_",
+        "height": 190,
+        "width": 230,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        432,
+        496
+      ],
+      "name": "[doc] Cerebro más potente (gpt-4o)",
+      "id": "7c5d58ee-e739-4fe6-bb68-b987d441a9fb"
+    },
+    {
+      "parameters": {
+        "content": "# 04 — Cambiar el cerebro\n\n**La idea:** el pedido a la IA está en el nodo de arriba. El **cerebro** que lo responde cuelga por debajo y se cambia **sin tocar nada más** del flujo.\n\n**Cómo se prueba:** ejecutar con un cerebro conectado, mirar la respuesta; después arrastrar la conexión al otro cerebro y volver a ejecutar. Mismo pedido, otro modelo, mismo flujo.\n\n**Para la gerencia:** el proveedor de IA no es una decisión estructural. Se elige por costo, por calidad y por dónde puede viajar el dato, y se cambia después. En este mismo lugar puede ir Gemini, Claude o un modelo local: basta cargar esa credencial.\n\n_[doc]_",
+        "height": 400,
+        "width": 400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -128
+      ],
+      "name": "[doc] De qué se trata",
+      "id": "9a771289-bd48-4876-a385-35ecba5a4dac"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al hacer clic en Ejecutar": {
+      "main": [
+        [
+          {
+            "node": "Redacta el mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cerebro rápido y barato (gpt-4o-mini)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Redacta el mail",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "51ae6168-2835-498b-9fad-c035f3121ab0",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "w7aVdOk6mxRGeE5v",
+  "tags": []
+}

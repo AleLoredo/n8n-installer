@@ -1,0 +1,201 @@
+{
+  "name": "09 — Traer datos de otro sistema por API",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Ejemplo con la API de AstroLearn\n\nDos pedidos encadenados, que es como funciona de verdad:\n\n**1.** `GET /space?categoria=planeta` trae los planetas cargados.\n**2.** Se queda con el primero y le pregunta al asistente sobre el.\n\nLa clave viaja en la cabecera `X-API-Key`: en los dos nodos esta elegida la credencial\n**APIs de ORT (X-API-Key)**, no hay que escribirla.\n\nPara probar otra cosa cambia la direccion del primer nodo:\n`/noticias` · `/posts` · `/eventos` · `/space?categoria=galaxia`",
+        "height": 320,
+        "width": 460,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -64
+      ],
+      "id": "s1",
+      "name": "Como usarlo"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        112,
+        80
+      ],
+      "id": "t1",
+      "name": "Execute workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://ort.nilosolutions.com/api/astrolearn/space?categoria=planeta",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        80
+      ],
+      "id": "h1",
+      "name": "1. Traer los planetas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "iZ61aq7vurNt3ftz",
+          "name": "APIs de ORT (X-API-Key)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        544,
+        80
+      ],
+      "id": "l1",
+      "name": "Quedarse con uno"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ort.nilosolutions.com/api/astrolearn/chat",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"pregunta\": \"Contame algo curioso sobre {{ $json.nombre }} en una sola oracion.\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        768,
+        80
+      ],
+      "id": "h2",
+      "name": "2. Preguntarle al asistente",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "iZ61aq7vurNt3ftz",
+          "name": "APIs de ORT (X-API-Key)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Arranque manual\n**Execute workflow**\n\nEs el botón de encendido. El flujo no hace nada hasta que alguien aprieta **Execute workflow**.\n\nEn un proceso real, en este lugar va otra cosa: un horario fijo, un correo que llega, un formulario que alguien completa.\n\nTodo flujo empieza siempre con un disparador.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        96,
+        -176
+      ],
+      "name": "[doc] Execute workflow",
+      "id": "20d8ac0b-66e3-49bf-a7d2-d12ea0b450dc"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar un dato afuera\n**1. Traer los planetas**\n\nSale a internet a pedirle información a otro sistema: `https://ort.nilosolutions.com/api/astrolearn/space?categoria…`\n\nEs la forma de traer datos de otro sistema **sin que nadie los copie y pegue a mano**.\n\nLo que vuelve queda disponible para los nodos siguientes.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -176
+      ],
+      "name": "[doc] 1. Traer los planetas",
+      "id": "34e2c5b7-ce0e-4b70-b826-70d1f8906a97"
+    },
+    {
+      "parameters": {
+        "content": "## Quedarse con uno\n**Quedarse con uno**\n\nRecorta la lista y deja un solo registro, para que el ejemplo sea corto y barato.\n\nSin este nodo, el paso siguiente se ejecutaría una vez por cada registro.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        528,
+        -176
+      ],
+      "name": "[doc] Quedarse con uno",
+      "id": "12115fd0-00b1-41d7-95df-223d3bd12a28"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar un dato afuera\n**2. Preguntarle al asistente**\n\nSale a internet a pedirle información a otro sistema: `https://ort.nilosolutions.com/api/astrolearn/chat`\n\nEs la forma de traer datos de otro sistema **sin que nadie los copie y pegue a mano**.\n\nLo que vuelve queda disponible para los nodos siguientes.\n\n_[doc]_",
+        "height": 200,
+        "width": 230,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        752,
+        -176
+      ],
+      "name": "[doc] 2. Preguntarle al asistente",
+      "id": "c1fe14f5-1755-4156-97ed-d73982173b20"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute workflow": {
+      "main": [
+        [
+          {
+            "node": "1. Traer los planetas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Traer los planetas": {
+      "main": [
+        [
+          {
+            "node": "Quedarse con uno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quedarse con uno": {
+      "main": [
+        [
+          {
+            "node": "2. Preguntarle al asistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "28feafdb-795c-429b-bfdb-b47f4018ca24",
+  "meta": {
+    "instanceId": "99ee6f4c288ef4f0551be175210b713bab28ceda011df84dfb596c70c710616d"
+  },
+  "id": "DKXNGqXj8aVN8gft",
+  "tags": []
+}
