@@ -1,6 +1,11 @@
 # n8n-installer
 
-Instalador automatizado de [n8n](https://n8n.io/) mediante Docker Compose, con configuración por defecto y un set de workflows de ejemplo listos para importar.
+![Logo de n8n](https://images.prismic.io/oxylabs-web/Z_0ZvuvxEdbNPBTc_n8nlogo.png?auto=format,compress)
+
+> Instalador automatizado de [n8n](https://n8n.io/) sobre Docker Compose con configuración por defecto y workflows de ejemplo.
+
+---
+
 
 ## ¿Qué hace este repositorio?
 
