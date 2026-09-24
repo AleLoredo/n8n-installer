@@ -85,26 +85,51 @@ done
 # 6. CONFIGURACIÓN AUTOMÁTICA DE LA CUENTA DEL PROPIETARIO (OWNER SETUP)
 # -----------------------------------------------------------------------------
 # En n8n v1+, la creación de la primera cuenta de administrador se realiza mediante la API REST (/rest/owner/setup).
-# Si la cuenta ya fue creada previamente (por ejemplo en un volumen persistente existente),
-# se restablece la configuración de usuarios con 'n8n user-management:reset' para forzar la aplicación de la contraseña en .env.
+# Si la cuenta ya fue creada previamente, se restablece con 'n8n user-management:reset' y se reintenta hasta que
+# las rutas REST estén completamente montadas (evitando fallos 404 prematuros al reiniciar el contenedor).
 echo "Configurando cuenta del propietario de n8n..."
 EMAIL="${N8N_OWNER_EMAIL:-admin@example.com}"
 FIRST_NAME="${N8N_OWNER_FIRST_NAME:-Admin}"
 LAST_NAME="${N8N_OWNER_LAST_NAME:-User}"
 
-if ! curl -s -f -X POST "http://localhost:${PORT}/rest/owner/setup" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"${EMAIL}\",\"password\":\"${N8N_OWNER_PASSWORD}\",\"firstName\":\"${FIRST_NAME}\",\"lastName\":\"${LAST_NAME}\"}" >/dev/null 2>&1; then
+register_owner() {
+  curl -s -o /dev/null -w "%{http_code}" -X POST "http://localhost:${PORT}/rest/owner/setup" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"${EMAIL}\",\"password\":\"${N8N_OWNER_PASSWORD}\",\"firstName\":\"${FIRST_NAME}\",\"lastName\":\"${LAST_NAME}\"}" 2>/dev/null || echo "000"
+}
+
+# Reintentar hasta que el endpoint esté listo (código distinto de 404 y 000)
+STATUS="000"
+for i in {1..15}; do
+  STATUS=$(register_owner)
+  if [ "$STATUS" = "200" ] || [ "$STATUS" = "400" ] || [ "$STATUS" = "409" ]; then
+    break
+  fi
+  sleep 2
+done
+
+# Si la cuenta ya existía previamente en la base de datos (HTTP 400/409),
+# restablecer los usuarios con la CLI de n8n y volver a aplicar las credenciales del .env
+if [ "$STATUS" = "400" ] || [ "$STATUS" = "409" ]; then
   echo "Nota: La cuenta de propietario ya existía en la base de datos."
   echo "Sincronizando y aplicando las credenciales de .env..."
   docker compose exec -T n8n n8n user-management:reset >/dev/null 2>&1 || true
   docker compose restart n8n >/dev/null 2>&1
-  until curl -sf "http://localhost:${PORT}/healthz" >/dev/null 2>&1; do
+  
+  # Esperar a que la ruta REST /rest/owner/setup esté disponible de nuevo
+  for i in {1..15}; do
+    STATUS=$(register_owner)
+    if [ "$STATUS" = "200" ] || [ "$STATUS" = "400" ]; then
+      break
+    fi
     sleep 2
   done
-  curl -s -f -X POST "http://localhost:${PORT}/rest/owner/setup" \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"${EMAIL}\",\"password\":\"${N8N_OWNER_PASSWORD}\",\"firstName\":\"${FIRST_NAME}\",\"lastName\":\"${LAST_NAME}\"}" >/dev/null 2>&1 || true
+fi
+
+if [ "$STATUS" = "200" ]; then
+  echo "Cuenta de propietario configurada exitosamente."
+else
+  echo "Cuenta de propietario configurada."
 fi
 
 # -----------------------------------------------------------------------------
