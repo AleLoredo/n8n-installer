@@ -85,15 +85,27 @@ done
 # 6. CONFIGURACIÓN AUTOMÁTICA DE LA CUENTA DEL PROPIETARIO (OWNER SETUP)
 # -----------------------------------------------------------------------------
 # En n8n v1+, la creación de la primera cuenta de administrador se realiza mediante la API REST (/rest/owner/setup).
-# Si la cuenta ya fue creada en ejecuciones anteriores, n8n responderá un error que es silenciado amigablemente.
+# Si la cuenta ya fue creada previamente (por ejemplo en un volumen persistente existente),
+# se restablece la configuración de usuarios con 'n8n user-management:reset' para forzar la aplicación de la contraseña en .env.
 echo "Configurando cuenta del propietario de n8n..."
 EMAIL="${N8N_OWNER_EMAIL:-admin@example.com}"
 FIRST_NAME="${N8N_OWNER_FIRST_NAME:-Admin}"
 LAST_NAME="${N8N_OWNER_LAST_NAME:-User}"
 
-curl -s -f -X POST "http://localhost:${PORT}/rest/owner/setup" \
+if ! curl -s -f -X POST "http://localhost:${PORT}/rest/owner/setup" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"${EMAIL}\",\"password\":\"${N8N_OWNER_PASSWORD}\",\"firstName\":\"${FIRST_NAME}\",\"lastName\":\"${LAST_NAME}\"}" >/dev/null 2>&1 || echo "Nota: La cuenta de propietario ya existe o ya fue configurada previamente."
+  -d "{\"email\":\"${EMAIL}\",\"password\":\"${N8N_OWNER_PASSWORD}\",\"firstName\":\"${FIRST_NAME}\",\"lastName\":\"${LAST_NAME}\"}" >/dev/null 2>&1; then
+  echo "Nota: La cuenta de propietario ya existía en la base de datos."
+  echo "Sincronizando y aplicando las credenciales de .env..."
+  docker compose exec -T n8n n8n user-management:reset >/dev/null 2>&1 || true
+  docker compose restart n8n >/dev/null 2>&1
+  until curl -sf "http://localhost:${PORT}/healthz" >/dev/null 2>&1; do
+    sleep 2
+  done
+  curl -s -f -X POST "http://localhost:${PORT}/rest/owner/setup" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"${EMAIL}\",\"password\":\"${N8N_OWNER_PASSWORD}\",\"firstName\":\"${FIRST_NAME}\",\"lastName\":\"${LAST_NAME}\"}" >/dev/null 2>&1 || true
+fi
 
 # -----------------------------------------------------------------------------
 # 7. IMPORTACIÓN AUTOMÁTICA DE WORKFLOWS DE EJEMPLO
